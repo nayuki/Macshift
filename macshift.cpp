@@ -114,7 +114,7 @@ void ResetAdapter(char * AdapterName) {
 		buf[i] = AdapterName[i];
 	}
 	CoInitialize(0);
-	INetConnectionManager * pNCM = NULL;    
+	INetConnectionManager * pNCM = NULL;
 	HRESULT hr = ::CoCreateInstance(guid,
 		NULL,
 		CLSCTX_ALL,
@@ -157,7 +157,7 @@ void ResetAdapter(char * AdapterName) {
 bool IsValidMAC(char * str) {
 	if (strlen(str) != 12) return false;
 	for (int i = 0; i < 12; i++) {
-		if ((str[i] < '0' || str[i] > '9') 
+		if ((str[i] < '0' || str[i] > '9')
 				&& (str[i] < 'a' || str[i] > 'f')
 				&& (str[i] < 'A' || str[i] > 'F')) {
 			return false;
@@ -215,7 +215,7 @@ int main(int argc, char * * argv) {
 					break;
 				case 'i': //Adapter name follows
 					if (argc > i + 1) adapter = argv[++i];
-					break;     
+					break;
 				case 'd': //Reset the MAC address
 					newmac[0] = 0;
 			}
