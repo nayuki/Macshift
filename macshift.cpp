@@ -22,11 +22,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 static const int versionMajor = 1;
 static const int versionMinor = 1;
 
+
 #include <windows.h>
 #include <objbase.h>
 #include <netcon.h>
 #include <stdio.h>
 #include "validmacs.h"
+
 
 static void SetMAC(const char *AdapterName, const char *NewMAC) {
 	HKEY hListKey = nullptr;
@@ -65,6 +67,7 @@ static void SetMAC(const char *AdapterName, const char *NewMAC) {
 		printf("Could not find adapter name '%s'.\nPlease make sure this is the name you gave it in Network Connections.\n", AdapterName);
 		return;
 	}
+	
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}",
 		0, KEY_READ, &hListKey);
 	if (!hListKey) {
@@ -90,7 +93,6 @@ static void SetMAC(const char *AdapterName, const char *NewMAC) {
 		keyNameBufSiz = 512;
 	}
 	RegCloseKey(hListKey);
-	
 }
 
 
@@ -205,6 +207,7 @@ int main(int argc, char **argv) {
 		ShowHelp();
 		return 0;
 	}
+	
 	//Start out with a random MAC
 	srand(GetTickCount());
 	RandomizeMAC(newmac);
