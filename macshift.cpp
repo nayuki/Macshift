@@ -19,8 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //To compile, all you need is an updated Windows Platform SDK and some form of compiler.
 
-const int versionMajor = 1;
-const int versionMinor = 1;
+static const int versionMajor = 1;
+static const int versionMinor = 1;
 
 #include <windows.h>
 #include <objbase.h>
@@ -28,7 +28,7 @@ const int versionMinor = 1;
 #include <stdio.h>
 #include "validmacs.h"
 
-void SetMAC(const char *AdapterName, const char *NewMAC) {
+static void SetMAC(const char *AdapterName, const char *NewMAC) {
 	HKEY hListKey = nullptr;
 	HKEY hKey = nullptr;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
@@ -93,7 +93,7 @@ void SetMAC(const char *AdapterName, const char *NewMAC) {
 	
 }
 
-void ResetAdapter(const char *AdapterName) {
+static void ResetAdapter(const char *AdapterName) {
 	struct _GUID guid = {0xBA126AD1,0x2166,0x11D1,0};
 	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
 	unsigned short *buf = new unsigned short[strlen(AdapterName)+1];
@@ -154,7 +154,7 @@ void ResetAdapter(const char *AdapterName) {
 	CoUninitialize ();
 }
 
-bool IsValidMAC(const char *str) {
+static bool IsValidMAC(const char *str) {
 	if (strlen(str) != 12)
 		return false;
 	for (int i = 0; i < 12; i++) {
@@ -167,7 +167,7 @@ bool IsValidMAC(const char *str) {
 	return true;
 }
 
-void ShowHelp() {
+static void ShowHelp() {
 	printf("Usage: macshift [options] [mac-address]\n\n");
 	printf("Options:\n");
 	printf("\t-i [adapter-name]     The adapter name from Network Connections.\n");
@@ -181,7 +181,7 @@ void ShowHelp() {
 }
 
 //Generates a random MAC that is actually plausible
-void RandomizeMAC(char *newmac) {
+static void RandomizeMAC(char *newmac) {
 	_snprintf(newmac, 6, "%06X", rand() % numMacs);
 	for (int i = 3; i < 6; i++) {
 		_snprintf(&newmac[i*2], 2, "%02X", rand() & 0xFF);
