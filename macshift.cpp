@@ -221,13 +221,10 @@ int main(int argc, char * * argv) {
 				case 'd': //Reset the MAC address
 					newmac[0] = 0;
 			}
-		}
-		else {
-			if (IsValidMAC(argv[i]))
-				strncpy(newmac, argv[i], 13);
-			else
-				printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", argv[i]);
-		}
+		} else if (IsValidMAC(argv[i]))
+			strncpy(newmac, argv[i], 13);
+		else
+			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", argv[i]);
 	}
 	
 	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newmac[0] ? newmac : "original MAC");
