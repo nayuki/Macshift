@@ -160,11 +160,12 @@ static bool IsValidMAC(const char *str) {
 	if (strlen(str) != 12)
 		return false;
 	for (int i = 0; i < 12; i++) {
-		if ((str[i] < '0' || str[i] > '9')
-				&& (str[i] < 'a' || str[i] > 'f')
-				&& (str[i] < 'A' || str[i] > 'F')) {
+		char c = str[i];
+		bool ok = ('0' <= c && c <= '9')
+		       || ('a' <= c && c <= 'f')
+		       || ('A' <= c && c <= 'F');
+		if (!ok)
 			return false;
-		}
 	}
 	return true;
 }
