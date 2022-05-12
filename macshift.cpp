@@ -32,7 +32,7 @@ static const int versionMinor = 1;
 #include "validmacs.h"
 
 
-static void SetMAC(const char *AdapterName, const char *NewMAC) {
+static void setMac(const char *AdapterName, const char *NewMAC) {
 	HKEY hListKey = nullptr;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
 		0, KEY_READ, &hListKey);
@@ -97,7 +97,7 @@ static void SetMAC(const char *AdapterName, const char *NewMAC) {
 }
 
 
-static void ResetAdapter(const char *AdapterName) {
+static void resetAdapter(const char *AdapterName) {
 	struct _GUID guid = {0xBA126AD1,0x2166,0x11D1,0};
 	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
 	unsigned short *buf = new unsigned short[std::strlen(AdapterName)+1];
@@ -157,7 +157,7 @@ static void ResetAdapter(const char *AdapterName) {
 }
 
 
-static bool IsValidMAC(const char *str) {
+static bool isValidMac(const char *str) {
 	if (std::strlen(str) != 12)
 		return false;
 	for (int i = 0; i < 12; i++) {
@@ -172,7 +172,7 @@ static bool IsValidMAC(const char *str) {
 }
 
 
-static void ShowHelp() {
+static void showHelp() {
 	puts("Usage: macshift [options] [mac-address]\n");
 	puts("Options:");
 	puts("\t-i [adapter-name]     The adapter name from Network Connections.");
@@ -187,7 +187,7 @@ static void ShowHelp() {
 
 
 //Generates a random MAC that is actually plausible
-static void RandomizeMAC(char *newmac) {
+static void randomizeMac(char *newmac) {
 	std::size_t numMacs = sizeof(validMacs) / sizeof(validMacs[0]);
 	_snprintf(newmac, 6, "%06X", rand() % numMacs);
 	for (int i = 3; i < 6; i++)
@@ -203,19 +203,19 @@ int main(int argc, char **argv) {
 	const char *adapter = "Wireless";
 	char newmac[13];
 	if (argc == 1) {
-		ShowHelp();
+		showHelp();
 		return 0;
 	}
 	
 	//Start out with a random MAC
 	srand(GetTickCount());
-	RandomizeMAC(newmac);
+	randomizeMac(newmac);
 	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
 				case '-': //Extended argument
 					if (std::strcmp(argv[i]+2, "help") == 0) {
-						ShowHelp();
+						showHelp();
 						return 0;
 					}
 					break;
@@ -228,17 +228,17 @@ int main(int argc, char **argv) {
 				case 'd': //Reset the MAC address
 					newmac[0] = 0;
 			}
-		} else if (IsValidMAC(argv[i]))
+		} else if (isValidMac(argv[i]))
 			std::strncpy(newmac, argv[i], 13);
 		else
 			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", argv[i]);
 	}
 	
 	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newmac[0] ? newmac : "original MAC");
-	SetMAC(adapter, newmac);
+	setMac(adapter, newmac);
 	puts("Resetting adapter...");
 	fflush(stdout);
-	ResetAdapter(adapter);
+	resetAdapter(adapter);
 	puts("Done");
 	return 0;
 }
