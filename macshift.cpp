@@ -137,7 +137,7 @@ static void resetAdapter(const char *AdapterName) {
 			NETCON_PROPERTIES *pNCP;
 			do {
 				pENC->Next(1, &pNC, &fetched);
-				if (fetched && pNC != nullptr) {
+				if (fetched != 0 && pNC != nullptr) {
 					pNC->GetProperties(&pNCP);
 					if (pNCP != nullptr) {
 						if (wcscmp(pNCP->pszwName, buf) == 0) {
@@ -237,7 +237,7 @@ int main(int argc, char **argv) {
 			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", arg);
 	}
 	
-	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newmac[0] ? newmac : "original MAC");
+	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newmac[0] != 0 ? newmac : "original MAC");
 	setMac(adapter, newmac);
 	puts("Resetting adapter...");
 	fflush(stdout);
