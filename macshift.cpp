@@ -155,7 +155,8 @@ void ResetAdapter(char * AdapterName) {
 }
 
 bool IsValidMAC(char * str) {
-	if (strlen(str) != 12) return false;
+	if (strlen(str) != 12)
+		return false;
 	for (int i = 0; i < 12; i++) {
 		if ((str[i] < '0' || str[i] > '9')
 				&& (str[i] < 'a' || str[i] > 'f')
@@ -214,15 +215,18 @@ int main(int argc, char * * argv) {
 				case 'r': //Random setting, this is the default
 					break;
 				case 'i': //Adapter name follows
-					if (argc > i + 1) adapter = argv[++i];
+					if (argc > i + 1)
+						adapter = argv[++i];
 					break;
 				case 'd': //Reset the MAC address
 					newmac[0] = 0;
 			}
 		}
 		else {
-			if (IsValidMAC(argv[i])) strncpy(newmac, argv[i], 13);
-			else printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", argv[i]);
+			if (IsValidMAC(argv[i]))
+				strncpy(newmac, argv[i], 13);
+			else
+				printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", argv[i]);
 		}
 	}
 	
