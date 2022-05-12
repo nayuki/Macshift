@@ -99,7 +99,7 @@ static void setMac(const char *AdapterName, const char *NewMAC) {
 
 
 static void resetAdapter(const char *AdapterName) {
-	struct _GUID guid = {0xBA126AD1,0x2166,0x11D1,0};
+	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, 0};
 	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
 	unsigned short *buf = new unsigned short[std::strlen(AdapterName)+1];
 	
@@ -154,7 +154,7 @@ static void resetAdapter(const char *AdapterName) {
 	}
 	
 	FreeLibrary(NetShell_Dll);
-	CoUninitialize ();
+	CoUninitialize();
 }
 
 
