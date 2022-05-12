@@ -23,6 +23,7 @@ static const int versionMajor = 1;
 static const int versionMinor = 1;
 
 
+#include <cstddef>
 #include <windows.h>
 #include <objbase.h>
 #include <netcon.h>
@@ -186,6 +187,7 @@ static void ShowHelp() {
 
 //Generates a random MAC that is actually plausible
 static void RandomizeMAC(char *newmac) {
+	std::size_t numMacs = sizeof(validMacs) / sizeof(validMacs[0]);
 	_snprintf(newmac, 6, "%06X", rand() % numMacs);
 	for (int i = 3; i < 6; i++)
 		_snprintf(&newmac[i*2], 2, "%02X", rand() & 0xFF);

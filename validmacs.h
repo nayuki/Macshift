@@ -6487,5 +6487,3 @@ unsigned long validMacs[] = {
 	0xAA0004,
 	0xACDE48,
 };
-
-const int numMacs = 6487;
