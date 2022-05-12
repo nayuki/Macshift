@@ -37,7 +37,7 @@ static void setMac(const char *AdapterName, const char *NewMAC) {
 	HKEY hListKey = nullptr;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
 		0, KEY_READ, &hListKey);
-	if (!hListKey) {
+	if (hListKey == nullptr) {
 		puts("Failed to open adapter list key");
 		return;
 	}
@@ -52,7 +52,7 @@ static void setMac(const char *AdapterName, const char *NewMAC) {
 		_snprintf(keyNameBuf2, 512, "%s\\Connection", keyNameBuf);
 		HKEY hKey = nullptr;
 		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ, &hKey);
-		if (hKey) {
+		if (hKey != nullptr) {
 			keyNameBufSiz = 512;
 			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2, &keyNameBufSiz)
 					== ERROR_SUCCESS && std::strcmp(keyNameBuf2, AdapterName) == 0) {
@@ -72,7 +72,7 @@ static void setMac(const char *AdapterName, const char *NewMAC) {
 	
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}",
 		0, KEY_READ, &hListKey);
-	if (!hListKey) {
+	if (hListKey == nullptr) {
 		puts("Failed to open adapter list key in Phase 2");
 		return;
 	}
@@ -82,7 +82,7 @@ static void setMac(const char *AdapterName, const char *NewMAC) {
 			== ERROR_SUCCESS) {
 		HKEY hKey = nullptr;
 		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ | KEY_SET_VALUE, &hKey);
-		if (hKey) {
+		if (hKey != nullptr) {
 			keyNameBufSiz = 512;
 			if ((RegQueryValueEx(hKey, "NetCfgInstanceId", 0, &crap, (LPBYTE)buf, &keyNameBufSiz)
 					== ERROR_SUCCESS) && (std::strcmp(buf, keyNameBuf) == 0)) {
@@ -105,12 +105,12 @@ static void resetAdapter(const char *AdapterName) {
 	
 	void (__stdcall *NcFreeNetConProperties) (NETCON_PROPERTIES *);
 	HMODULE NetShell_Dll = LoadLibrary("Netshell.dll");
-	if (!NetShell_Dll) {
+	if (NetShell_Dll == nullptr) {
 		puts("Couldn't load Netshell.dll");
 		return;
 	}
 	NcFreeNetConProperties = (void (__stdcall *)(struct tagNETCON_PROPERTIES *))GetProcAddress(NetShell_Dll, "NcFreeNetconProperties");
-	if (!NcFreeNetConProperties) {
+	if (NcFreeNetConProperties == nullptr) {
 		puts("Couldn't load required DLL function");
 		return;
 	}
@@ -124,12 +124,12 @@ static void resetAdapter(const char *AdapterName) {
 		CLSCTX_ALL,
 		__uuidof(INetConnectionManager),
 		(void**)&pNCM);
-	if (!pNCM)
+	if (pNCM == nullptr)
 		puts("Failed to instantiate required object");
 	else {
 		IEnumNetConnection *pENC;
 		pNCM->EnumConnections(NCME_DEFAULT, &pENC);
-		if (!pENC)
+		if (pENC == nullptr)
 			puts("Could not enumerate Network Connections");
 		else {
 			INetConnection *pNC;
@@ -137,9 +137,9 @@ static void resetAdapter(const char *AdapterName) {
 			NETCON_PROPERTIES *pNCP;
 			do {
 				pENC->Next(1, &pNC, &fetched);
-				if (fetched && pNC) {
+				if (fetched && pNC != nullptr) {
 					pNC->GetProperties(&pNCP);
-					if (pNCP) {
+					if (pNCP != nullptr) {
 						if (wcscmp(pNCP->pszwName, buf) == 0) {
 							pNC->Disconnect();
 							pNC->Connect();
