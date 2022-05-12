@@ -24,6 +24,7 @@ static const int versionMinor = 1;
 
 
 #include <cstddef>
+#include <cstdlib>
 #include <cstring>
 #include <windows.h>
 #include <objbase.h>
@@ -204,7 +205,7 @@ int main(int argc, char **argv) {
 	char newmac[13];
 	if (argc == 1) {
 		showHelp();
-		return 0;
+		return EXIT_SUCCESS;
 	}
 	
 	//Start out with a random MAC
@@ -216,7 +217,7 @@ int main(int argc, char **argv) {
 				case '-': //Extended argument
 					if (std::strcmp(argv[i]+2, "help") == 0) {
 						showHelp();
-						return 0;
+						return EXIT_SUCCESS;
 					}
 					break;
 				case 'r': //Random setting, this is the default
@@ -240,5 +241,5 @@ int main(int argc, char **argv) {
 	fflush(stdout);
 	resetAdapter(adapter);
 	puts("Done");
-	return 0;
+	return EXIT_SUCCESS;
 }
