@@ -212,10 +212,11 @@ int main(int argc, char **argv) {
 	srand(GetTickCount());
 	randomizeMac(newmac);
 	for (int i = 1; i < argc; i++) {
-		if (argv[i][0] == '-') {
-			switch (argv[i][1]) {
+		const char *arg = argv[i];
+		if (arg[0] == '-') {
+			switch (arg[1]) {
 				case '-': //Extended argument
-					if (std::strcmp(argv[i]+2, "help") == 0) {
+					if (std::strcmp(arg+2, "help") == 0) {
 						showHelp();
 						return EXIT_SUCCESS;
 					}
@@ -229,10 +230,10 @@ int main(int argc, char **argv) {
 				case 'd': //Reset the MAC address
 					newmac[0] = 0;
 			}
-		} else if (isValidMac(argv[i]))
-			std::strncpy(newmac, argv[i], 13);
+		} else if (isValidMac(arg))
+			std::strncpy(newmac, arg, 13);
 		else
-			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", argv[i]);
+			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", arg);
 	}
 	
 	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newmac[0] ? newmac : "original MAC");
