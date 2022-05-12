@@ -44,14 +44,14 @@ void SetMAC(char * AdapterName, char * NewMAC) {
 	int i = 0;
 	bool found = false;
 	while (RegEnumKeyEx(hListKey, i++, keyNameBuf, &keyNameBufSiz, 0, NULL, NULL, &writtenTime)
-				== ERROR_SUCCESS) {
+			== ERROR_SUCCESS) {
 		_snprintf(keyNameBuf2, 512, "%s\\Connection", keyNameBuf);
 		hKey = NULL;
 		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ, &hKey);
 		if (hKey) {
 			keyNameBufSiz = 512;
 			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2, &keyNameBufSiz)
-				== ERROR_SUCCESS && strcmp(keyNameBuf2, AdapterName) == 0) {
+					== ERROR_SUCCESS && strcmp(keyNameBuf2, AdapterName) == 0) {
 				printf("Adapter ID is %s\n", keyNameBuf);
 				found = true;
 				break;
@@ -74,13 +74,13 @@ void SetMAC(char * AdapterName, char * NewMAC) {
 	i = 0;
 	char buf[512];
 	while (RegEnumKeyEx(hListKey, i++, keyNameBuf2, &keyNameBufSiz, 0, NULL, NULL, &writtenTime)
-				== ERROR_SUCCESS) {
+			== ERROR_SUCCESS) {
 		hKey = NULL;
 		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ | KEY_SET_VALUE, &hKey);
 		if (hKey) {
 			keyNameBufSiz = 512;
 			if ((RegQueryValueEx(hKey, "NetCfgInstanceId", 0, &crap, (LPBYTE)buf, &keyNameBufSiz)
-				== ERROR_SUCCESS) && (strcmp(buf, keyNameBuf) == 0)) {
+					== ERROR_SUCCESS) && (strcmp(buf, keyNameBuf) == 0)) {
 				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)NewMAC, strlen(NewMAC) + 1);
 				//printf("Updating adapter index %s (%s=%s)\n", keyNameBuf2, buf, keyNameBuf);
 				//break;
@@ -114,52 +114,52 @@ void ResetAdapter(char * AdapterName) {
 		buf[i] = AdapterName[i];
 	}
 	CoInitialize(0);
-		INetConnectionManager * pNCM = NULL;    
-		HRESULT hr = ::CoCreateInstance(guid,
-																		 NULL,
-																		 CLSCTX_ALL,
-																		 __uuidof(INetConnectionManager),
-																		 (void**)&pNCM);
-		if (!pNCM)
-				printf("Failed to instantiate required object\n");
+	INetConnectionManager * pNCM = NULL;    
+	HRESULT hr = ::CoCreateInstance(guid,
+		NULL,
+		CLSCTX_ALL,
+		__uuidof(INetConnectionManager),
+		(void**)&pNCM);
+	if (!pNCM)
+		printf("Failed to instantiate required object\n");
+	else {
+		IEnumNetConnection * pENC;
+		pNCM->EnumConnections(NCME_DEFAULT, &pENC);
+		if (!pENC) {
+			printf("Could not enumerate Network Connections\n");
+		}
 		else {
-				IEnumNetConnection * pENC;
-				pNCM->EnumConnections(NCME_DEFAULT, &pENC);
-				if (!pENC) {
-					printf("Could not enumerate Network Connections\n");
-				}
-				else {
-					INetConnection * pNC;
-					ULONG fetched;
-					NETCON_PROPERTIES * pNCP;
-					do {
-						pENC->Next(1, &pNC, &fetched);
-						if (fetched && pNC) {
-							pNC->GetProperties(&pNCP);
-							if (pNCP) {
-								if (wcscmp(pNCP->pszwName, buf) == 0) {
-									pNC->Disconnect();
-									pNC->Connect();
-								}
-								NcFreeNetConProperties(pNCP);
-							}
+			INetConnection * pNC;
+			ULONG fetched;
+			NETCON_PROPERTIES * pNCP;
+			do {
+				pENC->Next(1, &pNC, &fetched);
+				if (fetched && pNC) {
+					pNC->GetProperties(&pNCP);
+					if (pNCP) {
+						if (wcscmp(pNCP->pszwName, buf) == 0) {
+							pNC->Disconnect();
+							pNC->Connect();
 						}
-					} while (fetched);
-						pENC->Release();
+						NcFreeNetConProperties(pNCP);
+					}
 				}
-				pNCM->Release();
+			} while (fetched);
+			pENC->Release();
+		}
+		pNCM->Release();
 	}
-		
-		FreeLibrary(NetShell_Dll);
-		CoUninitialize ();
+	
+	FreeLibrary(NetShell_Dll);
+	CoUninitialize ();
 }
 
 bool IsValidMAC(char * str) {
 	if (strlen(str) != 12) return false;
 	for (int i = 0; i < 12; i++) {
 		if ((str[i] < '0' || str[i] > '9') 
-					&& (str[i] < 'a' || str[i] > 'f')
-					&& (str[i] < 'A' || str[i] > 'F')) {
+				&& (str[i] < 'a' || str[i] > 'f')
+				&& (str[i] < 'A' || str[i] > 'F')) {
 			return false;
 		}
 	}
