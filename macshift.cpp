@@ -29,8 +29,8 @@ const int versionMinor = 1;
 #include "validmacs.h"
 
 void SetMAC(char *AdapterName, char *NewMAC) {
-	HKEY hListKey = NULL;
-	HKEY hKey = NULL;
+	HKEY hListKey = nullptr;
+	HKEY hKey = nullptr;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
 		0, KEY_READ, &hListKey);
 	if (!hListKey) {
@@ -43,10 +43,10 @@ void SetMAC(char *AdapterName, char *NewMAC) {
 	DWORD crap;
 	int i = 0;
 	bool found = false;
-	while (RegEnumKeyEx(hListKey, i++, keyNameBuf, &keyNameBufSiz, 0, NULL, NULL, &writtenTime)
+	while (RegEnumKeyEx(hListKey, i++, keyNameBuf, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime)
 			== ERROR_SUCCESS) {
 		_snprintf(keyNameBuf2, 512, "%s\\Connection", keyNameBuf);
-		hKey = NULL;
+		hKey = nullptr;
 		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ, &hKey);
 		if (hKey) {
 			keyNameBufSiz = 512;
@@ -73,9 +73,9 @@ void SetMAC(char *AdapterName, char *NewMAC) {
 	}
 	i = 0;
 	char buf[512];
-	while (RegEnumKeyEx(hListKey, i++, keyNameBuf2, &keyNameBufSiz, 0, NULL, NULL, &writtenTime)
+	while (RegEnumKeyEx(hListKey, i++, keyNameBuf2, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime)
 			== ERROR_SUCCESS) {
-		hKey = NULL;
+		hKey = nullptr;
 		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ | KEY_SET_VALUE, &hKey);
 		if (hKey) {
 			keyNameBufSiz = 512;
@@ -114,9 +114,9 @@ void ResetAdapter(char *AdapterName) {
 		buf[i] = AdapterName[i];
 	}
 	CoInitialize(0);
-	INetConnectionManager *pNCM = NULL;
+	INetConnectionManager *pNCM = nullptr;
 	HRESULT hr = ::CoCreateInstance(guid,
-		NULL,
+		nullptr,
 		CLSCTX_ALL,
 		__uuidof(INetConnectionManager),
 		(void**)&pNCM);
