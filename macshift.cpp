@@ -90,7 +90,7 @@ void SetMAC(char * AdapterName, char * NewMAC) {
 		keyNameBufSiz = 512;
 		}
 	RegCloseKey(hListKey);
-
+	
 	}
 
 void ResetAdapter(char * AdapterName) {
@@ -109,7 +109,7 @@ void ResetAdapter(char * AdapterName) {
 		printf("Couldn't load required DLL function\n");
 		return;
 		}
-
+	
 	for (unsigned int i = 0; i <= strlen(AdapterName); i++) {
 		buf[i] = AdapterName[i];
 		}
@@ -149,7 +149,7 @@ void ResetAdapter(char * AdapterName) {
 					}
 				pNCM->Release();
 		}
-
+		
 		FreeLibrary(NetShell_Dll);
 		CoUninitialize ();
 	}
@@ -190,7 +190,7 @@ void RandomizeMAC(char * newmac) {
 
 int main(int argc, char * * argv) {
 	printf("Macshift v%i.%i, MAC Changing Utility by Nathan True, macshift@natetrue.com\n\n", versionMajor, versionMinor);
-
+	
 	//Parse commandline arguments
 	char * adapter = "Wireless";
 	char newmac[13];
@@ -225,7 +225,7 @@ int main(int argc, char * * argv) {
 			else printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", argv[i]);
 			}
 		}
-
+	
 	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newmac[0] ? newmac : "original MAC");
 	SetMAC(adapter, newmac);
 	printf("Resetting adapter...\n");
