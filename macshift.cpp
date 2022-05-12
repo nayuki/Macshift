@@ -93,6 +93,7 @@ static void SetMAC(const char *AdapterName, const char *NewMAC) {
 	
 }
 
+
 static void ResetAdapter(const char *AdapterName) {
 	struct _GUID guid = {0xBA126AD1,0x2166,0x11D1,0};
 	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
@@ -154,6 +155,7 @@ static void ResetAdapter(const char *AdapterName) {
 	CoUninitialize ();
 }
 
+
 static bool IsValidMAC(const char *str) {
 	if (strlen(str) != 12)
 		return false;
@@ -166,6 +168,7 @@ static bool IsValidMAC(const char *str) {
 	}
 	return true;
 }
+
 
 static void ShowHelp() {
 	puts("Usage: macshift [options] [mac-address]\n");
@@ -180,6 +183,7 @@ static void ShowHelp() {
 	puts(" and your adapter is reset.");
 }
 
+
 //Generates a random MAC that is actually plausible
 static void RandomizeMAC(char *newmac) {
 	_snprintf(newmac, 6, "%06X", rand() % numMacs);
@@ -188,6 +192,7 @@ static void RandomizeMAC(char *newmac) {
 	}
 	newmac[12] = 0;
 }
+
 
 int main(int argc, char **argv) {
 	printf("Macshift v%i.%i, MAC Changing Utility by Nathan True, macshift@natetrue.com\n\n", versionMajor, versionMinor);
