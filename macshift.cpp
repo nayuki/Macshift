@@ -24,6 +24,7 @@ static const int versionMinor = 1;
 
 
 #include <cstddef>
+#include <cstring>
 #include <windows.h>
 #include <objbase.h>
 #include <netcon.h>
@@ -53,7 +54,7 @@ static void SetMAC(const char *AdapterName, const char *NewMAC) {
 		if (hKey) {
 			keyNameBufSiz = 512;
 			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2, &keyNameBufSiz)
-					== ERROR_SUCCESS && strcmp(keyNameBuf2, AdapterName) == 0) {
+					== ERROR_SUCCESS && std::strcmp(keyNameBuf2, AdapterName) == 0) {
 				printf("Adapter ID is %s\n", keyNameBuf);
 				found = true;
 				break;
@@ -83,8 +84,8 @@ static void SetMAC(const char *AdapterName, const char *NewMAC) {
 		if (hKey) {
 			keyNameBufSiz = 512;
 			if ((RegQueryValueEx(hKey, "NetCfgInstanceId", 0, &crap, (LPBYTE)buf, &keyNameBufSiz)
-					== ERROR_SUCCESS) && (strcmp(buf, keyNameBuf) == 0)) {
-				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)NewMAC, strlen(NewMAC) + 1);
+					== ERROR_SUCCESS) && (std::strcmp(buf, keyNameBuf) == 0)) {
+				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)NewMAC, std::strlen(NewMAC) + 1);
 				//printf("Updating adapter index %s (%s=%s)\n", keyNameBuf2, buf, keyNameBuf);
 				//break;
 			}
@@ -99,7 +100,7 @@ static void SetMAC(const char *AdapterName, const char *NewMAC) {
 static void ResetAdapter(const char *AdapterName) {
 	struct _GUID guid = {0xBA126AD1,0x2166,0x11D1,0};
 	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
-	unsigned short *buf = new unsigned short[strlen(AdapterName)+1];
+	unsigned short *buf = new unsigned short[std::strlen(AdapterName)+1];
 	
 	void (__stdcall *NcFreeNetConProperties) (NETCON_PROPERTIES *);
 	HMODULE NetShell_Dll = LoadLibrary("Netshell.dll");
@@ -113,7 +114,7 @@ static void ResetAdapter(const char *AdapterName) {
 		return;
 	}
 	
-	for (unsigned int i = 0; i <= strlen(AdapterName); i++)
+	for (unsigned int i = 0; i <= std::strlen(AdapterName); i++)
 		buf[i] = AdapterName[i];
 	CoInitialize(0);
 	INetConnectionManager *pNCM = nullptr;
@@ -157,7 +158,7 @@ static void ResetAdapter(const char *AdapterName) {
 
 
 static bool IsValidMAC(const char *str) {
-	if (strlen(str) != 12)
+	if (std::strlen(str) != 12)
 		return false;
 	for (int i = 0; i < 12; i++) {
 		char c = str[i];
@@ -213,7 +214,7 @@ int main(int argc, char **argv) {
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
 				case '-': //Extended argument
-					if (strcmp(argv[i]+2, "help") == 0) {
+					if (std::strcmp(argv[i]+2, "help") == 0) {
 						ShowHelp();
 						return 0;
 					}
@@ -228,7 +229,7 @@ int main(int argc, char **argv) {
 					newmac[0] = 0;
 			}
 		} else if (IsValidMAC(argv[i]))
-			strncpy(newmac, argv[i], 13);
+			std::strncpy(newmac, argv[i], 13);
 		else
 			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", argv[i]);
 	}
