@@ -200,9 +200,6 @@ static void randomizeMac(char *newmac) {
 int main(int argc, char **argv) {
 	printf("Macshift v%i.%i, MAC Changing Utility by Nathan True, macshift@natetrue.com\n\n", versionMajor, versionMinor);
 	
-	//Parse commandline arguments
-	const char *adapter = "Wireless";
-	char newmac[13];
 	if (argc == 1) {
 		showHelp();
 		return EXIT_SUCCESS;
@@ -210,7 +207,11 @@ int main(int argc, char **argv) {
 	
 	//Start out with a random MAC
 	srand(GetTickCount());
+	char newmac[13];
 	randomizeMac(newmac);
+	
+	//Parse commandline arguments
+	const char *adapter = "Wireless";
 	for (int i = 1; i < argc; i++) {
 		const char *arg = argv[i];
 		if (arg[0] == '-') {
