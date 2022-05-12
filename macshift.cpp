@@ -28,7 +28,7 @@ const int versionMinor = 1;
 #include <stdio.h>
 #include "validmacs.h"
 
-void SetMAC(char *AdapterName, char *NewMAC) {
+void SetMAC(const char *AdapterName, const char *NewMAC) {
 	HKEY hListKey = nullptr;
 	HKEY hKey = nullptr;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
@@ -93,7 +93,7 @@ void SetMAC(char *AdapterName, char *NewMAC) {
 	
 }
 
-void ResetAdapter(char *AdapterName) {
+void ResetAdapter(const char *AdapterName) {
 	struct _GUID guid = {0xBA126AD1,0x2166,0x11D1,0};
 	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
 	unsigned short *buf = new unsigned short[strlen(AdapterName)+1];
@@ -154,7 +154,7 @@ void ResetAdapter(char *AdapterName) {
 	CoUninitialize ();
 }
 
-bool IsValidMAC(char *str) {
+bool IsValidMAC(const char *str) {
 	if (strlen(str) != 12)
 		return false;
 	for (int i = 0; i < 12; i++) {
@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
 	printf("Macshift v%i.%i, MAC Changing Utility by Nathan True, macshift@natetrue.com\n\n", versionMajor, versionMinor);
 	
 	//Parse commandline arguments
-	char *adapter = "Wireless";
+	const char *adapter = "Wireless";
 	char newmac[13];
 	int i;
 	if (argc == 1) {
