@@ -34,7 +34,7 @@ static void SetMAC(const char *AdapterName, const char *NewMAC) {
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
 		0, KEY_READ, &hListKey);
 	if (!hListKey) {
-		printf("Failed to open adapter list key\n");
+		puts("Failed to open adapter list key");
 		return;
 	}
 	FILETIME writtenTime;
@@ -68,7 +68,7 @@ static void SetMAC(const char *AdapterName, const char *NewMAC) {
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}",
 		0, KEY_READ, &hListKey);
 	if (!hListKey) {
-		printf("Failed to open adapter list key in Phase 2\n");
+		puts("Failed to open adapter list key in Phase 2");
 		return;
 	}
 	i = 0;
@@ -101,12 +101,12 @@ static void ResetAdapter(const char *AdapterName) {
 	void (__stdcall *NcFreeNetConProperties) (NETCON_PROPERTIES *);
 	HMODULE NetShell_Dll = LoadLibrary("Netshell.dll");
 	if (!NetShell_Dll) {
-		printf("Couldn't load Netshell.dll\n");
+		puts("Couldn't load Netshell.dll");
 		return;
 	}
 	NcFreeNetConProperties = (void (__stdcall *)(struct tagNETCON_PROPERTIES *))GetProcAddress(NetShell_Dll, "NcFreeNetconProperties");
 	if (!NcFreeNetConProperties) {
-		printf("Couldn't load required DLL function\n");
+		puts("Couldn't load required DLL function");
 		return;
 	}
 	
@@ -121,12 +121,12 @@ static void ResetAdapter(const char *AdapterName) {
 		__uuidof(INetConnectionManager),
 		(void**)&pNCM);
 	if (!pNCM)
-		printf("Failed to instantiate required object\n");
+		puts("Failed to instantiate required object");
 	else {
 		IEnumNetConnection *pENC;
 		pNCM->EnumConnections(NCME_DEFAULT, &pENC);
 		if (!pENC) {
-			printf("Could not enumerate Network Connections\n");
+			puts("Could not enumerate Network Connections");
 		}
 		else {
 			INetConnection *pNC;
@@ -168,16 +168,16 @@ static bool IsValidMAC(const char *str) {
 }
 
 static void ShowHelp() {
-	printf("Usage: macshift [options] [mac-address]\n\n");
-	printf("Options:\n");
-	printf("\t-i [adapter-name]     The adapter name from Network Connections.\n");
-	printf("\t-r                    Uses a random MAC address. This is the default.\n");
-	printf("\t-d                    Restores the original MAC address.\n");
-	printf("\t--help                Shows this screen.\n\n");
-	printf("Macshift uses special undocumented functions in the Windows COM Interface that\n");
-	printf(" allow you to change an adapter's MAC address without needing to restart.\n");
-	printf("When you change a MAC address, all your connections are closed automatically\n");
-	printf(" and your adapter is reset.\n");
+	puts("Usage: macshift [options] [mac-address]\n");
+	puts("Options:");
+	puts("\t-i [adapter-name]     The adapter name from Network Connections.");
+	puts("\t-r                    Uses a random MAC address. This is the default.");
+	puts("\t-d                    Restores the original MAC address.");
+	puts("\t--help                Shows this screen.\n");
+	puts("Macshift uses special undocumented functions in the Windows COM Interface that");
+	puts(" allow you to change an adapter's MAC address without needing to restart.");
+	puts("When you change a MAC address, all your connections are closed automatically");
+	puts(" and your adapter is reset.");
 }
 
 //Generates a random MAC that is actually plausible
@@ -229,9 +229,9 @@ int main(int argc, char **argv) {
 	
 	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newmac[0] ? newmac : "original MAC");
 	SetMAC(adapter, newmac);
-	printf("Resetting adapter...\n");
+	puts("Resetting adapter...");
 	fflush(stdout);
 	ResetAdapter(adapter);
-	printf("Done\n");
+	puts("Done");
 	return 0;
 }
