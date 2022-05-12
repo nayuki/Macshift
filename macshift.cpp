@@ -33,7 +33,6 @@ static const int versionMinor = 1;
 
 static void SetMAC(const char *AdapterName, const char *NewMAC) {
 	HKEY hListKey = nullptr;
-	HKEY hKey = nullptr;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
 		0, KEY_READ, &hListKey);
 	if (!hListKey) {
@@ -49,7 +48,7 @@ static void SetMAC(const char *AdapterName, const char *NewMAC) {
 	while (RegEnumKeyEx(hListKey, i++, keyNameBuf, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime)
 			== ERROR_SUCCESS) {
 		_snprintf(keyNameBuf2, 512, "%s\\Connection", keyNameBuf);
-		hKey = nullptr;
+		HKEY hKey = nullptr;
 		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ, &hKey);
 		if (hKey) {
 			keyNameBufSiz = 512;
@@ -79,7 +78,7 @@ static void SetMAC(const char *AdapterName, const char *NewMAC) {
 	char buf[512];
 	while (RegEnumKeyEx(hListKey, i++, keyNameBuf2, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime)
 			== ERROR_SUCCESS) {
-		hKey = nullptr;
+		HKEY hKey = nullptr;
 		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ | KEY_SET_VALUE, &hKey);
 		if (hKey) {
 			keyNameBufSiz = 512;
@@ -201,7 +200,6 @@ int main(int argc, char **argv) {
 	//Parse commandline arguments
 	const char *adapter = "Wireless";
 	char newmac[13];
-	int i;
 	if (argc == 1) {
 		ShowHelp();
 		return 0;
@@ -210,7 +208,7 @@ int main(int argc, char **argv) {
 	//Start out with a random MAC
 	srand(GetTickCount());
 	RandomizeMAC(newmac);
-	for (i = 1; i < argc; i++) {
+	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
 				case '-': //Extended argument
