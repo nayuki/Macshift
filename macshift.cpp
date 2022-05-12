@@ -36,7 +36,7 @@ void SetMAC(char * AdapterName, char * NewMAC) {
 	if (!hListKey) {
 		printf("Failed to open adapter list key\n");
 		return;
-		}
+	}
 	FILETIME writtenTime;
 	char keyNameBuf[512], keyNameBuf2[512];
 	DWORD keyNameBufSiz = 512;
@@ -55,22 +55,22 @@ void SetMAC(char * AdapterName, char * NewMAC) {
 				printf("Adapter ID is %s\n", keyNameBuf);
 				found = true;
 				break;
-				}
-			RegCloseKey(hKey);
 			}
-		keyNameBufSiz = 512;
+			RegCloseKey(hKey);
 		}
+		keyNameBufSiz = 512;
+	}
 	RegCloseKey(hListKey);
 	if (!found) {
 		printf("Could not find adapter name '%s'.\nPlease make sure this is the name you gave it in Network Connections.\n", AdapterName);
 		return;
-		}
+	}
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}",
 		0, KEY_READ, &hListKey);
 	if (!hListKey) {
 		printf("Failed to open adapter list key in Phase 2\n");
 		return;
-		}
+	}
 	i = 0;
 	char buf[512];
 	while (RegEnumKeyEx(hListKey, i++, keyNameBuf2, &keyNameBufSiz, 0, NULL, NULL, &writtenTime)
@@ -84,14 +84,14 @@ void SetMAC(char * AdapterName, char * NewMAC) {
 				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)NewMAC, strlen(NewMAC) + 1);
 				//printf("Updating adapter index %s (%s=%s)\n", keyNameBuf2, buf, keyNameBuf);
 				//break;
-				}
-			RegCloseKey(hKey);
 			}
-		keyNameBufSiz = 512;
+			RegCloseKey(hKey);
 		}
+		keyNameBufSiz = 512;
+	}
 	RegCloseKey(hListKey);
 	
-	}
+}
 
 void ResetAdapter(char * AdapterName) {
 	struct _GUID guid = {0xBA126AD1,0x2166,0x11D1,0};
@@ -103,16 +103,16 @@ void ResetAdapter(char * AdapterName) {
 	if (!NetShell_Dll) {
 		printf("Couldn't load Netshell.dll\n");
 		return;
-		}
+	}
 	NcFreeNetConProperties = (void (__stdcall *)(struct tagNETCON_PROPERTIES *))GetProcAddress(NetShell_Dll, "NcFreeNetconProperties");
 	if (!NcFreeNetConProperties) {
 		printf("Couldn't load required DLL function\n");
 		return;
-		}
+	}
 	
 	for (unsigned int i = 0; i <= strlen(AdapterName); i++) {
 		buf[i] = AdapterName[i];
-		}
+	}
 	CoInitialize(0);
 		INetConnectionManager * pNCM = NULL;    
 		HRESULT hr = ::CoCreateInstance(guid,
@@ -127,7 +127,7 @@ void ResetAdapter(char * AdapterName) {
 				pNCM->EnumConnections(NCME_DEFAULT, &pENC);
 				if (!pENC) {
 					printf("Could not enumerate Network Connections\n");
-					}
+				}
 				else {
 					INetConnection * pNC;
 					ULONG fetched;
@@ -140,19 +140,19 @@ void ResetAdapter(char * AdapterName) {
 								if (wcscmp(pNCP->pszwName, buf) == 0) {
 									pNC->Disconnect();
 									pNC->Connect();
-									}
-								NcFreeNetConProperties(pNCP);
 								}
+								NcFreeNetConProperties(pNCP);
 							}
-						} while (fetched);
+						}
+					} while (fetched);
 						pENC->Release();
-					}
+				}
 				pNCM->Release();
-		}
+	}
 		
 		FreeLibrary(NetShell_Dll);
 		CoUninitialize ();
-	}
+}
 
 bool IsValidMAC(char * str) {
 	if (strlen(str) != 12) return false;
@@ -161,10 +161,10 @@ bool IsValidMAC(char * str) {
 					&& (str[i] < 'a' || str[i] > 'f')
 					&& (str[i] < 'A' || str[i] > 'F')) {
 			return false;
-			}
 		}
-	return true;
 	}
+	return true;
+}
 
 void ShowHelp() {
 	printf("Usage: macshift [options] [mac-address]\n\n");
@@ -177,16 +177,16 @@ void ShowHelp() {
 	printf(" allow you to change an adapter's MAC address without needing to restart.\n");
 	printf("When you change a MAC address, all your connections are closed automatically\n");
 	printf(" and your adapter is reset.\n");
-	}
+}
 
 //Generates a random MAC that is actually plausible
 void RandomizeMAC(char * newmac) {
 	_snprintf(newmac, 6, "%06X", rand() % numMacs);
 	for (int i = 3; i < 6; i++) {
 		_snprintf(&newmac[i*2], 2, "%02X", rand() & 0xFF);
-		}
-	newmac[12] = 0;
 	}
+	newmac[12] = 0;
+}
 
 int main(int argc, char * * argv) {
 	printf("Macshift v%i.%i, MAC Changing Utility by Nathan True, macshift@natetrue.com\n\n", versionMajor, versionMinor);
@@ -198,7 +198,7 @@ int main(int argc, char * * argv) {
 	if (argc == 1) {
 		ShowHelp();
 		return 0;
-		}
+	}
 	//Start out with a random MAC
 	srand(GetTickCount());
 	RandomizeMAC(newmac);
@@ -209,7 +209,7 @@ int main(int argc, char * * argv) {
 					if (strcmp(argv[i]+2, "help") == 0) {
 						ShowHelp();
 						return 0;
-						}
+					}
 					break;
 				case 'r': //Random setting, this is the default
 					break;
@@ -218,13 +218,13 @@ int main(int argc, char * * argv) {
 					break;     
 				case 'd': //Reset the MAC address
 					newmac[0] = 0;
-				}
 			}
+		}
 		else {
 			if (IsValidMAC(argv[i])) strncpy(newmac, argv[i], 13);
 			else printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", argv[i]);
-			}
 		}
+	}
 	
 	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newmac[0] ? newmac : "original MAC");
 	SetMAC(adapter, newmac);
@@ -233,4 +233,4 @@ int main(int argc, char * * argv) {
 	ResetAdapter(adapter);
 	printf("Done\n");
 	return 0;
-	}
+}
