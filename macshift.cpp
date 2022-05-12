@@ -113,9 +113,8 @@ static void ResetAdapter(const char *AdapterName) {
 		return;
 	}
 	
-	for (unsigned int i = 0; i <= strlen(AdapterName); i++) {
+	for (unsigned int i = 0; i <= strlen(AdapterName); i++)
 		buf[i] = AdapterName[i];
-	}
 	CoInitialize(0);
 	INetConnectionManager *pNCM = nullptr;
 	HRESULT hr = ::CoCreateInstance(guid,
@@ -128,9 +127,8 @@ static void ResetAdapter(const char *AdapterName) {
 	else {
 		IEnumNetConnection *pENC;
 		pNCM->EnumConnections(NCME_DEFAULT, &pENC);
-		if (!pENC) {
+		if (!pENC)
 			puts("Could not enumerate Network Connections");
-		}
 		else {
 			INetConnection *pNC;
 			ULONG fetched;
@@ -189,9 +187,8 @@ static void ShowHelp() {
 //Generates a random MAC that is actually plausible
 static void RandomizeMAC(char *newmac) {
 	_snprintf(newmac, 6, "%06X", rand() % numMacs);
-	for (int i = 3; i < 6; i++) {
+	for (int i = 3; i < 6; i++)
 		_snprintf(&newmac[i*2], 2, "%02X", rand() & 0xFF);
-	}
 	newmac[12] = 0;
 }
 
