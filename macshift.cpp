@@ -26,6 +26,7 @@ static const int versionMinor = 1;
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include <windows.h>
 #include <objbase.h>
 #include <netcon.h>
@@ -33,7 +34,7 @@ static const int versionMinor = 1;
 #include "validmacs.h"
 
 
-static void setMac(const char *AdapterName, const char *NewMAC) {
+static void setMac(const char *AdapterName, const std::string &newMac) {
 	HKEY hListKey = nullptr;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
 		0, KEY_READ, &hListKey);
@@ -86,7 +87,7 @@ static void setMac(const char *AdapterName, const char *NewMAC) {
 			char buf[512];
 			if ((RegQueryValueEx(hKey, "NetCfgInstanceId", 0, &crap, (LPBYTE)buf, &keyNameBufSiz)
 					== ERROR_SUCCESS) && (std::strcmp(buf, keyNameBuf) == 0)) {
-				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)NewMAC, std::strlen(NewMAC) + 1);
+				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)newMac.c_str(), static_cast<DWORD>(newMac.size() + 1));
 				//printf("Updating adapter index %s (%s=%s)\n", keyNameBuf2, buf, keyNameBuf);
 				//break;
 			}
@@ -188,7 +189,7 @@ static void showHelp() {
 
 
 //Generates a random MAC that is actually plausible
-static void randomizeMac(char *outMac) {
+static std::string randomizeMac() {
 	std::size_t numMacs = sizeof(validMacs) / sizeof(validMacs[0]);
 	long long temp = static_cast<long long>(validMacs[rand() % numMacs]);
 	for (int i = 0; i < 3; i++) {
@@ -197,11 +198,12 @@ static void randomizeMac(char *outMac) {
 	}
 	
 	static const char *HEX_DIGITS = "0123456789ABCDEF";
-	outMac[12] = '\0';
+	std::string result;
 	for (int i = 11; i >= 0; i--) {
-		outMac[i] = HEX_DIGITS[temp & 0xF];
+		result.insert(result.begin(), HEX_DIGITS[temp & 0xF]);
 		temp >>= 4;
 	}
+	return result;
 }
 
 
@@ -215,8 +217,7 @@ int main(int argc, char **argv) {
 	
 	//Start out with a random MAC
 	srand(GetTickCount());
-	char newmac[13];
-	randomizeMac(newmac);
+	std::string newMac = randomizeMac();
 	
 	//Parse commandline arguments
 	const char *adapter = "Wireless";
@@ -237,16 +238,16 @@ int main(int argc, char **argv) {
 						adapter = argv[++i];
 					break;
 				case 'd': //Reset the MAC address
-					newmac[0] = 0;
+					newMac = "";
 			}
 		} else if (isValidMac(arg))
-			std::strncpy(newmac, arg, 13);
+			newMac = arg;
 		else
 			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", arg);
 	}
 	
-	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newmac[0] != 0 ? newmac : "original MAC");
-	setMac(adapter, newmac);
+	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newMac.size() > 0 ? newMac.c_str() : "original MAC");
+	setMac(adapter, newMac.c_str());
 	puts("Resetting adapter...");
 	fflush(stdout);
 	resetAdapter(adapter);
