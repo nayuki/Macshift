@@ -100,7 +100,6 @@ static void setMac(const char *AdapterName, const std::string &newMac) {
 static void resetAdapter(const char *AdapterName) {
 	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, 0};
 	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
-	wchar_t *buf = new wchar_t[std::strlen(AdapterName)+1];
 	
 	void (__stdcall *NcFreeNetConProperties) (NETCON_PROPERTIES *);
 	HMODULE NetShell_Dll = LoadLibrary("Netshell.dll");
@@ -114,8 +113,9 @@ static void resetAdapter(const char *AdapterName) {
 		return;
 	}
 	
-	for (unsigned int i = 0; i <= std::strlen(AdapterName); i++)
-		buf[i] = AdapterName[i];
+	std::wstring buf;
+	for (std::size_t i = 0; i < std::strlen(AdapterName); i++)
+		buf.push_back(static_cast<wchar_t>(AdapterName[i]));
 	CoInitialize(0);
 	INetConnectionManager *pNCM = nullptr;
 	HRESULT hr = ::CoCreateInstance(guid,
@@ -139,7 +139,7 @@ static void resetAdapter(const char *AdapterName) {
 				if (fetched != 0 && pNC != nullptr) {
 					pNC->GetProperties(&pNCP);
 					if (pNCP != nullptr) {
-						if (wcscmp(pNCP->pszwName, buf) == 0) {
+						if (wcscmp(pNCP->pszwName, buf.c_str()) == 0) {
 							pNC->Disconnect();
 							pNC->Connect();
 						}
