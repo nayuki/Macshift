@@ -46,10 +46,8 @@ static void setMac(const char *AdapterName, const std::string &newMac) {
 	char keyNameBuf[512];
 	DWORD keyNameBufSiz = 512;
 	DWORD crap;
-	int i = 0;
 	bool found = false;
-	while (RegEnumKeyEx(hListKey, i++, keyNameBuf, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime)
-			== ERROR_SUCCESS) {
+	for (DWORD i = 0; RegEnumKeyEx(hListKey, i, keyNameBuf, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime) == ERROR_SUCCESS; i++) {
 		std::string keyNameBuf2 = keyNameBuf;
 		keyNameBuf2 += "\\Connection";
 		HKEY hKey = nullptr;
@@ -79,9 +77,7 @@ static void setMac(const char *AdapterName, const std::string &newMac) {
 		return;
 	}
 	char keyNameBuf2[512];
-	i = 0;
-	while (RegEnumKeyEx(hListKey, i++, keyNameBuf2, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime)
-			== ERROR_SUCCESS) {
+	for (DWORD i = 0; RegEnumKeyEx(hListKey, i, keyNameBuf2, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime) == ERROR_SUCCESS; i++) {
 		HKEY hKey = nullptr;
 		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ | KEY_SET_VALUE, &hKey);
 		if (hKey != nullptr) {
