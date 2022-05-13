@@ -190,7 +190,7 @@ static void showHelp() {
 //Generates a random MAC that is actually plausible
 static void randomizeMac(char *newmac) {
 	std::size_t numMacs = sizeof(validMacs) / sizeof(validMacs[0]);
-	_snprintf(newmac, 6, "%06X", rand() % numMacs);
+	_snprintf(newmac, 6, "%06lX", validMacs[rand() % numMacs]);
 	for (int i = 3; i < 6; i++)
 		_snprintf(&newmac[i*2], 2, "%02X", rand() & 0xFF);
 	newmac[12] = 0;
