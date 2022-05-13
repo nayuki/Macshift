@@ -77,13 +77,13 @@ static void setMac(const char *AdapterName, const char *NewMAC) {
 		return;
 	}
 	i = 0;
-	char buf[512];
 	while (RegEnumKeyEx(hListKey, i++, keyNameBuf2, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime)
 			== ERROR_SUCCESS) {
 		HKEY hKey = nullptr;
 		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ | KEY_SET_VALUE, &hKey);
 		if (hKey != nullptr) {
 			keyNameBufSiz = 512;
+			char buf[512];
 			if ((RegQueryValueEx(hKey, "NetCfgInstanceId", 0, &crap, (LPBYTE)buf, &keyNameBufSiz)
 					== ERROR_SUCCESS) && (std::strcmp(buf, keyNameBuf) == 0)) {
 				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)NewMAC, std::strlen(NewMAC) + 1);
