@@ -188,12 +188,20 @@ static void showHelp() {
 
 
 //Generates a random MAC that is actually plausible
-static void randomizeMac(char *newmac) {
+static void randomizeMac(char *outMac) {
 	std::size_t numMacs = sizeof(validMacs) / sizeof(validMacs[0]);
-	_snprintf(newmac, 6, "%06lX", validMacs[rand() % numMacs]);
-	for (int i = 3; i < 6; i++)
-		_snprintf(&newmac[i*2], 2, "%02X", rand() & 0xFF);
-	newmac[12] = 0;
+	long long temp = static_cast<long long>(validMacs[rand() % numMacs]);
+	for (int i = 0; i < 3; i++) {
+		temp <<= 8;
+		temp |= rand() & 0xFF;
+	}
+	
+	static const char *HEX_DIGITS = "0123456789ABCDEF";
+	outMac[12] = '\0';
+	for (int i = 11; i >= 0; i--) {
+		outMac[i] = HEX_DIGITS[temp & 0xF];
+		temp >>= 4;
+	}
 }
 
 
