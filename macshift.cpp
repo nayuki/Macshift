@@ -43,20 +43,21 @@ static void setMac(const char *AdapterName, const std::string &newMac) {
 		return;
 	}
 	FILETIME writtenTime;
-	char keyNameBuf[512], keyNameBuf2[512];
+	char keyNameBuf[512];
 	DWORD keyNameBufSiz = 512;
 	DWORD crap;
 	int i = 0;
 	bool found = false;
 	while (RegEnumKeyEx(hListKey, i++, keyNameBuf, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime)
 			== ERROR_SUCCESS) {
-		_snprintf(keyNameBuf2, 512, "%s\\Connection", keyNameBuf);
+		std::string keyNameBuf2 = keyNameBuf;
+		keyNameBuf2 += "\\Connection";
 		HKEY hKey = nullptr;
-		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ, &hKey);
+		RegOpenKeyEx(hListKey, keyNameBuf2.c_str(), 0, KEY_READ, &hKey);
 		if (hKey != nullptr) {
 			keyNameBufSiz = 512;
-			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2, &keyNameBufSiz)
-					== ERROR_SUCCESS && std::strcmp(keyNameBuf2, AdapterName) == 0) {
+			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2.c_str(), &keyNameBufSiz)
+					== ERROR_SUCCESS && std::strcmp(keyNameBuf2.c_str(), AdapterName) == 0) {
 				printf("Adapter ID is %s\n", keyNameBuf);
 				found = true;
 				break;
@@ -77,6 +78,7 @@ static void setMac(const char *AdapterName, const std::string &newMac) {
 		puts("Failed to open adapter list key in Phase 2");
 		return;
 	}
+	char keyNameBuf2[512];
 	i = 0;
 	while (RegEnumKeyEx(hListKey, i++, keyNameBuf2, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime)
 			== ERROR_SUCCESS) {
