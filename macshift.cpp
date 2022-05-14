@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -32,49 +33,71 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Function prototypes
 static std::string randomizeMac();
-static void showHelp();
+static void showHelp(const std::string &exePath);
 static bool isValidMac(const std::string &str);
 static void setMac(const std::string &AdapterName, const std::string &newMac);
 static void resetAdapter(const std::string &AdapterName);
 
 
-static const int versionMajor = 1;
-static const int versionMinor = 1;
-
 int main(int argc, char **argv) {
-	std::cerr << "Macshift v" << versionMajor << "." << versionMinor << ", MAC Changing Utility by Nathan True, macshift@natetrue.com" << std::endl << std::endl;
+	std::cerr << "Macshift v1.1: A utility to change a network adapter's MAC address." << std::endl;
+	std::cerr << std::endl;
 	
-	if (argc == 1) {
-		showHelp();
-		return EXIT_FAILURE;
-	}
+	std::vector<std::string> argVec;
+	for (int i = 0; i < argc; i++)
+		argVec.push_back(std::string(argv[i]));
 	
-	//Start out with a random MAC
+	std::string adapter = "";
+	bool isMacModeSet = false;
 	srand(GetTickCount());
 	std::string newMac = randomizeMac();
 	
-	//Parse commandline arguments
-	std::string adapter = "Wireless";
-	for (int i = 1; i < argc; i++) {
-		const std::string arg = argv[i];
-		if (arg[0] == '-') {
-			switch (arg[1]) {
-				case 'h':
-					showHelp();
+	// Parse command-line arguments
+	for (size_t i = 1; i < argVec.size(); i++) {
+		const std::string &arg = argVec.at(i);
+		if (arg.find("-") == 0) {  // A flag
+			if (arg == "-h") {
+				showHelp(argVec[0]);
+				return EXIT_FAILURE;
+			} else if (arg == "-d" || arg == "-r" || arg == "-a") {
+				if (isMacModeSet) {
+					std::cerr << "Error: Command-line arguments contain more than one MAC address mode." << std::endl;
 					return EXIT_FAILURE;
-				case 'r': //Random setting, this is the default
-					break;
-				case 'i': //Adapter name follows
-					if (argc > i + 1)
-						adapter = std::string(argv[++i]);
-					break;
-				case 'd': //Reset the MAC address
+				}
+				isMacModeSet = true;
+				if (arg == "-d")
 					newMac = "";
+				else if (arg == "-r")
+					;  // Do nothing else because newMac is already random
+				else if (arg == "-a") {
+					if (argVec.size() - i <= 1) {
+						std::cerr << "Error: Missing MAC address argument." << std::endl;
+						return EXIT_FAILURE;
+					}
+					i++;
+					const std::string &val = argVec.at(i);
+					if (!isValidMac(val)) {
+						std::cerr << "Error: Invalid MAC address, must match pattern /[0-9a-fA-F]{12}/." << std::endl;
+						return EXIT_FAILURE;
+					}
+					newMac = val;
+				} else
+					throw std::logic_error("Unreachable");
+			} else {
+				std::cerr << "Error: Unrecognized command-line flag." << std::endl;
+				return EXIT_FAILURE;
 			}
-		} else if (isValidMac(arg))
-			newMac = arg;
-		else
-			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", arg.c_str());
+		} else {  // Not a flag
+			if (!adapter.empty()) {
+				std::cerr << "Error: Command-line arguments contain more than network adapter name." << std::endl;
+				return EXIT_FAILURE;
+			}
+			adapter = arg;
+		}
+	}
+	if (adapter == "") {
+		showHelp(argVec[0]);
+		return EXIT_FAILURE;
 	}
 	
 	std::cerr << "Setting MAC on adapter '" << adapter << "' to " << (newMac.size() > 0 ? newMac : std::string("original MAC")) << "..." << std::endl;
@@ -106,18 +129,23 @@ static std::string randomizeMac() {
 }
 
 
-static void showHelp() {
+static void showHelp(const std::string &exePath) {
+	std::cerr << "Usage: " << exePath << " AdapterName [Options]" << std::endl;
+	
 	const std::vector<const char *> LINES{
-		"Usage: macshift [options] [mac-address]\n",
+		"",
 		"Options:",
-		"\t-i [adapter-name]     The adapter name from Network Connections.",
-		"\t-r                    Uses a random MAC address. This is the default.",
-		"\t-d                    Restores the original MAC address.",
-		"\t-h                    Shows this screen.\n",
-		"Macshift uses special undocumented functions in the Windows COM Interface that",
-		" allow you to change an adapter's MAC address without needing to restart.",
-		"When you change a MAC address, all your connections are closed automatically",
-		" and your adapter is reset.",
+		"    -r               Use a random MAC address (default action).",
+		"    -a MacAddress    Use the given MAC address.",
+		"    -d               Restore the original MAC address.",
+		"",
+		"    -h               Show this help screen.",
+		"",
+		"Macshift uses special undocumented functions in the Windows COM Interface",
+		"that allow you to change an adapter's MAC address without needing to restart.",
+		"",
+		"When you change a MAC address, all your connections",
+		"are closed automatically and your adapter is reset.",
 	};
 	for (const char *line : LINES)
 		std::cerr << line << std::endl;
