@@ -204,7 +204,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 		return;
 	}
 	
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}",
+	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
 		0, KEY_READ, &hListKey);
 	if (hListKey == nullptr) {
 		puts("Failed to open adapter list key in Phase 2");
