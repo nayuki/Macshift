@@ -139,7 +139,7 @@ static bool isValidMac(const char *str) {
 }
 
 
-static void setMac(const char *AdapterName, const std::string &newMac) {
+static void setMac(const char *adapterName, const std::string &newMac) {
 	HKEY hListKey = nullptr;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
 		0, KEY_READ, &hListKey);
@@ -160,7 +160,7 @@ static void setMac(const char *AdapterName, const std::string &newMac) {
 		if (hKey != nullptr) {
 			keyNameBufSiz = 512;
 			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2.c_str(), &keyNameBufSiz)
-					== ERROR_SUCCESS && std::strcmp(keyNameBuf2.c_str(), AdapterName) == 0) {
+					== ERROR_SUCCESS && std::strcmp(keyNameBuf2.c_str(), adapterName) == 0) {
 				printf("Adapter ID is %s\n", keyNameBuf);
 				found = true;
 				break;
@@ -171,7 +171,7 @@ static void setMac(const char *AdapterName, const std::string &newMac) {
 	}
 	RegCloseKey(hListKey);
 	if (!found) {
-		printf("Could not find adapter name '%s'.\nPlease make sure this is the name you gave it in Network Connections.\n", AdapterName);
+		printf("Could not find adapter name '%s'.\nPlease make sure this is the name you gave it in Network Connections.\n", adapterName);
 		return;
 	}
 	
@@ -202,7 +202,7 @@ static void setMac(const char *AdapterName, const std::string &newMac) {
 }
 
 
-static void resetAdapter(const char *AdapterName) {
+static void resetAdapter(const char *adapterName) {
 	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, 0};
 	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
 	
@@ -219,8 +219,8 @@ static void resetAdapter(const char *AdapterName) {
 	}
 	
 	std::wstring buf;
-	for (std::size_t i = 0; i < std::strlen(AdapterName); i++)
-		buf.push_back(static_cast<wchar_t>(AdapterName[i]));
+	for (std::size_t i = 0; i < std::strlen(adapterName); i++)
+		buf.push_back(static_cast<wchar_t>(adapterName[i]));
 	CoInitialize(0);
 	INetConnectionManager *pNCM = nullptr;
 	HRESULT hr = ::CoCreateInstance(guid,
