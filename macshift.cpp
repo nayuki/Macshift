@@ -1,6 +1,10 @@
 /* 
- * Macshift - the simple windows MAC address changing utility
- * Copyright (C) 2004  Nathan True macshift@natetrue.com www.natetrue.com
+ * Macshift - the simple Windows MAC address changing utility
+ * 
+ * Copyright (c) 2004 Nathan True <macshift@natetrue.com>
+ * http://www.natetrue.com/
+ * Copyright (c) Project Nayuki
+ * https://www.nayuki.io/
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +20,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
-//To compile, all you need is an updated Windows Platform SDK and some form of compiler.
 
 #include <cstddef>
 #include <cstdlib>
@@ -149,7 +151,7 @@ static bool isValidMac(const std::string &str) {
 
 extern std::vector<unsigned long> validMacs;
 
-//Generates a random MAC that is actually plausible
+// Generates a random MAC that is actually plausible.
 static std::string randomizeMac() {
 	long long temp = static_cast<long long>(validMacs[rand() % validMacs.size()]);
 	for (int i = 0; i < 3; i++) {
