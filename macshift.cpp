@@ -259,11 +259,13 @@ static void resetAdapter(const std::string &adapterName) {
 		if (pENC == nullptr)
 			puts("Could not enumerate Network Connections");
 		else {
-			ULONG fetched;
-			do {
+			while (true) {
 				INetConnection *pNC;
+				ULONG fetched;
 				pENC->Next(1, &pNC, &fetched);
-				if (fetched != 0 && pNC != nullptr) {
+				if (fetched == 0)
+					break;
+				if (pNC != nullptr) {
 					NETCON_PROPERTIES *pNCP;
 					pNC->GetProperties(&pNCP);
 					if (pNCP != nullptr) {
@@ -274,7 +276,7 @@ static void resetAdapter(const std::string &adapterName) {
 						NcFreeNetConProperties(pNCP);
 					}
 				}
-			} while (fetched);
+			}
 			pENC->Release();
 		}
 		pNCM->Release();
