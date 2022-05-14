@@ -230,8 +230,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 
 
 static void resetAdapter(const std::string &adapterName) {
-	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, 0};
-	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
+	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, {0xB1,0xD0,0x00,0x80,0x5F,0xC1,0x27,0x0E}};
 	
 	HMODULE netshellLib = LoadLibrary("Netshell.dll");
 	if (netshellLib == nullptr) {
