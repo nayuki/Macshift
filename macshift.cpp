@@ -259,12 +259,12 @@ static void resetAdapter(const std::string &adapterName) {
 		if (pENC == nullptr)
 			puts("Could not enumerate Network Connections");
 		else {
-			INetConnection *pNC;
 			ULONG fetched;
-			NETCON_PROPERTIES *pNCP;
 			do {
+				INetConnection *pNC;
 				pENC->Next(1, &pNC, &fetched);
 				if (fetched != 0 && pNC != nullptr) {
+					NETCON_PROPERTIES *pNCP;
 					pNC->GetProperties(&pNCP);
 					if (pNCP != nullptr) {
 						if (wcscmp(pNCP->pszwName, buf.c_str()) == 0) {
