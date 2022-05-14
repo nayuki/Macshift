@@ -27,11 +27,11 @@ static const int versionMinor = 1;
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <vector>
 #include <windows.h>
 #include <objbase.h>
 #include <netcon.h>
 #include <stdio.h>
-#include "validmacs.h"
 
 
 static void setMac(const char *AdapterName, const std::string &newMac) {
@@ -185,6 +185,8 @@ static void showHelp() {
 	puts(" and your adapter is reset.");
 }
 
+
+extern std::vector<unsigned long> validMacs;
 
 //Generates a random MAC that is actually plausible
 static std::string randomizeMac() {
