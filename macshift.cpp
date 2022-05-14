@@ -19,10 +19,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //To compile, all you need is an updated Windows Platform SDK and some form of compiler.
 
-static const int versionMajor = 1;
-static const int versionMinor = 1;
-
-
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -32,6 +28,115 @@ static const int versionMinor = 1;
 #include <objbase.h>
 #include <netcon.h>
 #include <stdio.h>
+
+
+// Function prototypes
+static std::string randomizeMac();
+static void showHelp();
+static bool isValidMac(const char *str);
+static void setMac(const char *AdapterName, const std::string &newMac);
+static void resetAdapter(const char *AdapterName);
+
+
+static const int versionMajor = 1;
+static const int versionMinor = 1;
+
+int main(int argc, char **argv) {
+	printf("Macshift v%i.%i, MAC Changing Utility by Nathan True, macshift@natetrue.com\n\n", versionMajor, versionMinor);
+	
+	if (argc == 1) {
+		showHelp();
+		return EXIT_SUCCESS;
+	}
+	
+	//Start out with a random MAC
+	srand(GetTickCount());
+	std::string newMac = randomizeMac();
+	
+	//Parse commandline arguments
+	const char *adapter = "Wireless";
+	for (int i = 1; i < argc; i++) {
+		const char *arg = argv[i];
+		if (arg[0] == '-') {
+			switch (arg[1]) {
+				case '-': //Extended argument
+					if (std::strcmp(arg+2, "help") == 0) {
+						showHelp();
+						return EXIT_SUCCESS;
+					}
+					break;
+				case 'r': //Random setting, this is the default
+					break;
+				case 'i': //Adapter name follows
+					if (argc > i + 1)
+						adapter = argv[++i];
+					break;
+				case 'd': //Reset the MAC address
+					newMac = "";
+			}
+		} else if (isValidMac(arg))
+			newMac = arg;
+		else
+			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", arg);
+	}
+	
+	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newMac.size() > 0 ? newMac.c_str() : "original MAC");
+	setMac(adapter, newMac.c_str());
+	puts("Resetting adapter...");
+	fflush(stdout);
+	resetAdapter(adapter);
+	puts("Done");
+	return EXIT_SUCCESS;
+}
+
+
+extern std::vector<unsigned long> validMacs;
+
+//Generates a random MAC that is actually plausible
+static std::string randomizeMac() {
+	long long temp = static_cast<long long>(validMacs[rand() % validMacs.size()]);
+	for (int i = 0; i < 3; i++) {
+		temp <<= 8;
+		temp |= rand() & 0xFF;
+	}
+	
+	static const char *HEX_DIGITS = "0123456789ABCDEF";
+	std::string result;
+	for (int i = 11; i >= 0; i--) {
+		result.insert(result.begin(), HEX_DIGITS[temp & 0xF]);
+		temp >>= 4;
+	}
+	return result;
+}
+
+
+static void showHelp() {
+	puts("Usage: macshift [options] [mac-address]\n");
+	puts("Options:");
+	puts("\t-i [adapter-name]     The adapter name from Network Connections.");
+	puts("\t-r                    Uses a random MAC address. This is the default.");
+	puts("\t-d                    Restores the original MAC address.");
+	puts("\t--help                Shows this screen.\n");
+	puts("Macshift uses special undocumented functions in the Windows COM Interface that");
+	puts(" allow you to change an adapter's MAC address without needing to restart.");
+	puts("When you change a MAC address, all your connections are closed automatically");
+	puts(" and your adapter is reset.");
+}
+
+
+static bool isValidMac(const char *str) {
+	if (std::strlen(str) != 12)
+		return false;
+	for (int i = 0; i < 12; i++) {
+		char c = str[i];
+		bool ok = ('0' <= c && c <= '9')
+		       || ('a' <= c && c <= 'f')
+		       || ('A' <= c && c <= 'F');
+		if (!ok)
+			return false;
+	}
+	return true;
+}
 
 
 static void setMac(const char *AdapterName, const std::string &newMac) {
@@ -154,102 +259,4 @@ static void resetAdapter(const char *AdapterName) {
 	
 	FreeLibrary(NetShell_Dll);
 	CoUninitialize();
-}
-
-
-static bool isValidMac(const char *str) {
-	if (std::strlen(str) != 12)
-		return false;
-	for (int i = 0; i < 12; i++) {
-		char c = str[i];
-		bool ok = ('0' <= c && c <= '9')
-		       || ('a' <= c && c <= 'f')
-		       || ('A' <= c && c <= 'F');
-		if (!ok)
-			return false;
-	}
-	return true;
-}
-
-
-static void showHelp() {
-	puts("Usage: macshift [options] [mac-address]\n");
-	puts("Options:");
-	puts("\t-i [adapter-name]     The adapter name from Network Connections.");
-	puts("\t-r                    Uses a random MAC address. This is the default.");
-	puts("\t-d                    Restores the original MAC address.");
-	puts("\t--help                Shows this screen.\n");
-	puts("Macshift uses special undocumented functions in the Windows COM Interface that");
-	puts(" allow you to change an adapter's MAC address without needing to restart.");
-	puts("When you change a MAC address, all your connections are closed automatically");
-	puts(" and your adapter is reset.");
-}
-
-
-extern std::vector<unsigned long> validMacs;
-
-//Generates a random MAC that is actually plausible
-static std::string randomizeMac() {
-	long long temp = static_cast<long long>(validMacs[rand() % validMacs.size()]);
-	for (int i = 0; i < 3; i++) {
-		temp <<= 8;
-		temp |= rand() & 0xFF;
-	}
-	
-	static const char *HEX_DIGITS = "0123456789ABCDEF";
-	std::string result;
-	for (int i = 11; i >= 0; i--) {
-		result.insert(result.begin(), HEX_DIGITS[temp & 0xF]);
-		temp >>= 4;
-	}
-	return result;
-}
-
-
-int main(int argc, char **argv) {
-	printf("Macshift v%i.%i, MAC Changing Utility by Nathan True, macshift@natetrue.com\n\n", versionMajor, versionMinor);
-	
-	if (argc == 1) {
-		showHelp();
-		return EXIT_SUCCESS;
-	}
-	
-	//Start out with a random MAC
-	srand(GetTickCount());
-	std::string newMac = randomizeMac();
-	
-	//Parse commandline arguments
-	const char *adapter = "Wireless";
-	for (int i = 1; i < argc; i++) {
-		const char *arg = argv[i];
-		if (arg[0] == '-') {
-			switch (arg[1]) {
-				case '-': //Extended argument
-					if (std::strcmp(arg+2, "help") == 0) {
-						showHelp();
-						return EXIT_SUCCESS;
-					}
-					break;
-				case 'r': //Random setting, this is the default
-					break;
-				case 'i': //Adapter name follows
-					if (argc > i + 1)
-						adapter = argv[++i];
-					break;
-				case 'd': //Reset the MAC address
-					newMac = "";
-			}
-		} else if (isValidMac(arg))
-			newMac = arg;
-		else
-			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", arg);
-	}
-	
-	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newMac.size() > 0 ? newMac.c_str() : "original MAC");
-	setMac(adapter, newMac.c_str());
-	puts("Resetting adapter...");
-	fflush(stdout);
-	resetAdapter(adapter);
-	puts("Done");
-	return EXIT_SUCCESS;
 }
