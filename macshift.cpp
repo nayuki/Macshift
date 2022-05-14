@@ -42,7 +42,7 @@ static void resetAdapter(const std::string &AdapterName);
 
 
 int main(int argc, char **argv) {
-	std::cerr << "Macshift v1.1: A utility to change a network adapter's MAC address." << std::endl;
+	std::cerr << "Macshift v1.1 - the simple Windows MAC address changing utility" << std::endl;
 	std::cerr << std::endl;
 	
 	std::vector<std::string> argVec;
@@ -113,6 +113,9 @@ int main(int argc, char **argv) {
 
 static void showHelp(const std::string &exePath) {
 	std::cerr << "Usage: " << exePath << " AdapterName [Options]" << std::endl;
+	std::cerr << std::endl;
+	std::cerr << "Example: " << exePath << " \"Wi-Fi\" -r" << std::endl;
+	std::cerr << "Example: " << exePath << " \"Ethernet\" -a 02ABCDEF9876" << std::endl;
 	
 	const std::vector<const char *> LINES{
 		"",
