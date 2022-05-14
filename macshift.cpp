@@ -248,7 +248,7 @@ static void resetAdapter(const std::string &adapterName) {
 	std::wstring buf;
 	for (std::size_t i = 0; i < adapterName.size(); i++)
 		buf.push_back(static_cast<wchar_t>(adapterName[i]));
-	CoInitialize(0);
+	(void)CoInitialize(nullptr);
 	INetConnectionManager *pNCM = nullptr;
 	HRESULT hr = ::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&pNCM);
 	if (pNCM == nullptr)
