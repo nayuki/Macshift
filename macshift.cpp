@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 	
 	if (argc == 1) {
 		showHelp();
-		return EXIT_SUCCESS;
+		return EXIT_FAILURE;
 	}
 	
 	//Start out with a random MAC
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 				case '-': //Extended argument
 					if (arg.substr(2) == "help") {
 						showHelp();
-						return EXIT_SUCCESS;
+						return EXIT_FAILURE;
 					}
 					break;
 				case 'r': //Random setting, this is the default
