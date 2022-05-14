@@ -21,7 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <cstddef>
 #include <cstdlib>
-#include <cstring>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -33,9 +32,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Function prototypes
 static std::string randomizeMac();
 static void showHelp();
-static bool isValidMac(const char *str);
-static void setMac(const char *AdapterName, const std::string &newMac);
-static void resetAdapter(const char *AdapterName);
+static bool isValidMac(const std::string &str);
+static void setMac(const std::string &AdapterName, const std::string &newMac);
+static void resetAdapter(const std::string &AdapterName);
 
 
 static const int versionMajor = 1;
@@ -54,13 +53,13 @@ int main(int argc, char **argv) {
 	std::string newMac = randomizeMac();
 	
 	//Parse commandline arguments
-	const char *adapter = "Wireless";
+	std::string adapter = "Wireless";
 	for (int i = 1; i < argc; i++) {
-		const char *arg = argv[i];
+		const std::string arg = argv[i];
 		if (arg[0] == '-') {
 			switch (arg[1]) {
 				case '-': //Extended argument
-					if (std::strcmp(arg+2, "help") == 0) {
+					if (arg.substr(2) == "help") {
 						showHelp();
 						return EXIT_SUCCESS;
 					}
@@ -69,7 +68,7 @@ int main(int argc, char **argv) {
 					break;
 				case 'i': //Adapter name follows
 					if (argc > i + 1)
-						adapter = argv[++i];
+						adapter = std::string(argv[++i]);
 					break;
 				case 'd': //Reset the MAC address
 					newMac = "";
@@ -77,10 +76,10 @@ int main(int argc, char **argv) {
 		} else if (isValidMac(arg))
 			newMac = arg;
 		else
-			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", arg);
+			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", arg.c_str());
 	}
 	
-	printf("Setting MAC on adapter '%s' to %s...\n", adapter, newMac.size() > 0 ? newMac.c_str() : "original MAC");
+	printf("Setting MAC on adapter '%s' to %s...\n", adapter.c_str(), newMac.size() > 0 ? newMac.c_str() : "original MAC");
 	setMac(adapter, newMac.c_str());
 	puts("Resetting adapter...");
 	fflush(stdout);
@@ -124,8 +123,8 @@ static void showHelp() {
 }
 
 
-static bool isValidMac(const char *str) {
-	if (std::strlen(str) != 12)
+static bool isValidMac(const std::string &str) {
+	if (str.size() != 12)
 		return false;
 	for (int i = 0; i < 12; i++) {
 		char c = str[i];
@@ -139,7 +138,7 @@ static bool isValidMac(const char *str) {
 }
 
 
-static void setMac(const char *adapterName, const std::string &newMac) {
+static void setMac(const std::string &adapterName, const std::string &newMac) {
 	HKEY hListKey = nullptr;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
 		0, KEY_READ, &hListKey);
@@ -160,7 +159,7 @@ static void setMac(const char *adapterName, const std::string &newMac) {
 		if (hKey != nullptr) {
 			keyNameBufSiz = 512;
 			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2.c_str(), &keyNameBufSiz)
-					== ERROR_SUCCESS && std::strcmp(keyNameBuf2.c_str(), adapterName) == 0) {
+					== ERROR_SUCCESS && keyNameBuf2 == adapterName) {
 				printf("Adapter ID is %s\n", keyNameBuf);
 				found = true;
 				break;
@@ -171,7 +170,7 @@ static void setMac(const char *adapterName, const std::string &newMac) {
 	}
 	RegCloseKey(hListKey);
 	if (!found) {
-		printf("Could not find adapter name '%s'.\nPlease make sure this is the name you gave it in Network Connections.\n", adapterName);
+		printf("Could not find adapter name '%s'.\nPlease make sure this is the name you gave it in Network Connections.\n", adapterName.c_str());
 		return;
 	}
 	
@@ -189,7 +188,7 @@ static void setMac(const char *adapterName, const std::string &newMac) {
 			keyNameBufSiz = 512;
 			char buf[512];
 			if ((RegQueryValueEx(hKey, "NetCfgInstanceId", 0, &crap, (LPBYTE)buf, &keyNameBufSiz)
-					== ERROR_SUCCESS) && (std::strcmp(buf, keyNameBuf) == 0)) {
+					== ERROR_SUCCESS) && std::string(buf) == std::string(keyNameBuf)) {
 				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)newMac.c_str(), static_cast<DWORD>(newMac.size() + 1));
 				//printf("Updating adapter index %s (%s=%s)\n", keyNameBuf2, buf, keyNameBuf);
 				//break;
@@ -202,7 +201,7 @@ static void setMac(const char *adapterName, const std::string &newMac) {
 }
 
 
-static void resetAdapter(const char *adapterName) {
+static void resetAdapter(const std::string &adapterName) {
 	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, 0};
 	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
 	
@@ -219,7 +218,7 @@ static void resetAdapter(const char *adapterName) {
 	}
 	
 	std::wstring buf;
-	for (std::size_t i = 0; i < std::strlen(adapterName); i++)
+	for (std::size_t i = 0; i < adapterName.size(); i++)
 		buf.push_back(static_cast<wchar_t>(adapterName[i]));
 	CoInitialize(0);
 	INetConnectionManager *pNCM = nullptr;
