@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <cstddef>
 #include <cstdlib>
+#include <iostream>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -41,7 +42,7 @@ static const int versionMajor = 1;
 static const int versionMinor = 1;
 
 int main(int argc, char **argv) {
-	printf("Macshift v%i.%i, MAC Changing Utility by Nathan True, macshift@natetrue.com\n\n", versionMajor, versionMinor);
+	std::cerr << "Macshift v" << versionMajor << "." << versionMinor << ", MAC Changing Utility by Nathan True, macshift@natetrue.com" << std::endl << std::endl;
 	
 	if (argc == 1) {
 		showHelp();
@@ -76,12 +77,11 @@ int main(int argc, char **argv) {
 			printf("MAC String %s is not valid. MAC addresses must m/^[0-9a-fA-F]{12}$/.\n", arg.c_str());
 	}
 	
-	printf("Setting MAC on adapter '%s' to %s...\n", adapter.c_str(), newMac.size() > 0 ? newMac.c_str() : "original MAC");
+	std::cerr << "Setting MAC on adapter '" << adapter << "' to " << (newMac.size() > 0 ? newMac : std::string("original MAC")) << "..." << std::endl;
 	setMac(adapter, newMac.c_str());
-	puts("Resetting adapter...");
-	fflush(stdout);
+	std::cerr << "Resetting adapter..." << std::endl;
 	resetAdapter(adapter);
-	puts("Done");
+	std::cerr << "Done" << std::endl;
 	return EXIT_SUCCESS;
 }
 
@@ -107,16 +107,20 @@ static std::string randomizeMac() {
 
 
 static void showHelp() {
-	puts("Usage: macshift [options] [mac-address]\n");
-	puts("Options:");
-	puts("\t-i [adapter-name]     The adapter name from Network Connections.");
-	puts("\t-r                    Uses a random MAC address. This is the default.");
-	puts("\t-d                    Restores the original MAC address.");
-	puts("\t-h                    Shows this screen.\n");
-	puts("Macshift uses special undocumented functions in the Windows COM Interface that");
-	puts(" allow you to change an adapter's MAC address without needing to restart.");
-	puts("When you change a MAC address, all your connections are closed automatically");
-	puts(" and your adapter is reset.");
+	const std::vector<const char *> LINES{
+		"Usage: macshift [options] [mac-address]\n",
+		"Options:",
+		"\t-i [adapter-name]     The adapter name from Network Connections.",
+		"\t-r                    Uses a random MAC address. This is the default.",
+		"\t-d                    Restores the original MAC address.",
+		"\t-h                    Shows this screen.\n",
+		"Macshift uses special undocumented functions in the Windows COM Interface that",
+		" allow you to change an adapter's MAC address without needing to restart.",
+		"When you change a MAC address, all your connections are closed automatically",
+		" and your adapter is reset.",
+	};
+	for (const char *line : LINES)
+		std::cerr << line << std::endl;
 }
 
 
@@ -157,7 +161,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 			keyNameBufSiz = 512;
 			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2.c_str(), &keyNameBufSiz)
 					== ERROR_SUCCESS && keyNameBuf2 == adapterName) {
-				printf("Adapter ID is %s\n", keyNameBuf);
+				std::cerr << "Adapter ID is " << keyNameBuf << std::endl;
 				found = true;
 				break;
 			}
@@ -167,7 +171,8 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 	}
 	RegCloseKey(hListKey);
 	if (!found) {
-		printf("Could not find adapter name '%s'.\nPlease make sure this is the name you gave it in Network Connections.\n", adapterName.c_str());
+		std::cerr << "Could not find adapter name '" << adapterName << "'." << std::endl;
+		std::cerr << "Please make sure this is the name you gave it in Network Connections." << std::endl;
 		return;
 	}
 	
@@ -187,7 +192,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 			if ((RegQueryValueEx(hKey, "NetCfgInstanceId", 0, &crap, (LPBYTE)buf, &keyNameBufSiz)
 					== ERROR_SUCCESS) && std::string(buf) == std::string(keyNameBuf)) {
 				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)newMac.c_str(), static_cast<DWORD>(newMac.size() + 1));
-				//printf("Updating adapter index %s (%s=%s)\n", keyNameBuf2, buf, keyNameBuf);
+				//std::cerr << "Updating adapter index " << keyNameBuf2 << " (" << buf << "=" << keyNameBuf << ")" << std::endl;
 				//break;
 			}
 			RegCloseKey(hKey);
