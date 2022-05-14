@@ -234,12 +234,12 @@ static void resetAdapter(const std::string &adapterName) {
 	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
 	
 	void (__stdcall *NcFreeNetConProperties) (NETCON_PROPERTIES *);
-	HMODULE NetShell_Dll = LoadLibrary("Netshell.dll");
-	if (NetShell_Dll == nullptr) {
+	HMODULE netshellLib = LoadLibrary("Netshell.dll");
+	if (netshellLib == nullptr) {
 		puts("Couldn't load Netshell.dll");
 		return;
 	}
-	NcFreeNetConProperties = (void (__stdcall *)(struct tagNETCON_PROPERTIES *))GetProcAddress(NetShell_Dll, "NcFreeNetconProperties");
+	NcFreeNetConProperties = (void (__stdcall *)(struct tagNETCON_PROPERTIES *))GetProcAddress(netshellLib, "NcFreeNetconProperties");
 	if (NcFreeNetConProperties == nullptr) {
 		puts("Couldn't load required DLL function");
 		return;
@@ -280,6 +280,6 @@ static void resetAdapter(const std::string &adapterName) {
 		pNCM->Release();
 	}
 	
-	FreeLibrary(NetShell_Dll);
+	FreeLibrary(netshellLib);
 	CoUninitialize();
 }
