@@ -233,13 +233,14 @@ static void resetAdapter(const std::string &adapterName) {
 	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, 0};
 	memcpy(guid.Data4, "\xB1\xD0\x00\x80\x5F\xC1\x27\x0E", 8);
 	
-	void (__stdcall *NcFreeNetConProperties) (NETCON_PROPERTIES *);
 	HMODULE netshellLib = LoadLibrary("Netshell.dll");
 	if (netshellLib == nullptr) {
 		puts("Couldn't load Netshell.dll");
 		return;
 	}
-	NcFreeNetConProperties = (void (__stdcall *)(struct tagNETCON_PROPERTIES *))GetProcAddress(netshellLib, "NcFreeNetconProperties");
+	void (__stdcall *NcFreeNetConProperties)(NETCON_PROPERTIES *) =
+		(void (__stdcall *)(struct tagNETCON_PROPERTIES *))
+		GetProcAddress(netshellLib, "NcFreeNetconProperties");
 	if (NcFreeNetConProperties == nullptr) {
 		puts("Couldn't load required DLL function");
 		return;
