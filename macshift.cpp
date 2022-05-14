@@ -58,12 +58,9 @@ int main(int argc, char **argv) {
 		const std::string arg = argv[i];
 		if (arg[0] == '-') {
 			switch (arg[1]) {
-				case '-': //Extended argument
-					if (arg.substr(2) == "help") {
-						showHelp();
-						return EXIT_FAILURE;
-					}
-					break;
+				case 'h':
+					showHelp();
+					return EXIT_FAILURE;
 				case 'r': //Random setting, this is the default
 					break;
 				case 'i': //Adapter name follows
@@ -115,7 +112,7 @@ static void showHelp() {
 	puts("\t-i [adapter-name]     The adapter name from Network Connections.");
 	puts("\t-r                    Uses a random MAC address. This is the default.");
 	puts("\t-d                    Restores the original MAC address.");
-	puts("\t--help                Shows this screen.\n");
+	puts("\t-h                    Shows this screen.\n");
 	puts("Macshift uses special undocumented functions in the Windows COM Interface that");
 	puts(" allow you to change an adapter's MAC address without needing to restart.");
 	puts("When you change a MAC address, all your connections are closed automatically");
