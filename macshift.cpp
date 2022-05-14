@@ -169,8 +169,7 @@ static std::string randomizeMac() {
 
 static void setMac(const std::string &adapterName, const std::string &newMac) {
 	HKEY hListKey = nullptr;
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
-		0, KEY_READ, &hListKey);
+	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey);
 	if (hListKey == nullptr) {
 		puts("Failed to open adapter list key");
 		return;
@@ -187,8 +186,8 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 		RegOpenKeyEx(hListKey, keyNameBuf2.c_str(), 0, KEY_READ, &hKey);
 		if (hKey != nullptr) {
 			keyNameBufSiz = 512;
-			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2.c_str(), &keyNameBufSiz)
-					== ERROR_SUCCESS && keyNameBuf2 == adapterName) {
+			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2.c_str(), &keyNameBufSiz) == ERROR_SUCCESS
+					&& keyNameBuf2 == adapterName) {
 				std::cerr << "Adapter ID is " << keyNameBuf << std::endl;
 				found = true;
 				break;
@@ -204,8 +203,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 		return;
 	}
 	
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}",
-		0, KEY_READ, &hListKey);
+	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey);
 	if (hListKey == nullptr) {
 		puts("Failed to open adapter list key in Phase 2");
 		return;
@@ -217,8 +215,8 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 		if (hKey != nullptr) {
 			keyNameBufSiz = 512;
 			char buf[512];
-			if ((RegQueryValueEx(hKey, "NetCfgInstanceId", 0, &crap, (LPBYTE)buf, &keyNameBufSiz)
-					== ERROR_SUCCESS) && std::string(buf) == std::string(keyNameBuf)) {
+			if (RegQueryValueEx(hKey, "NetCfgInstanceId", 0, &crap, (LPBYTE)buf, &keyNameBufSiz) == ERROR_SUCCESS
+					&& std::string(buf) == std::string(keyNameBuf)) {
 				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)newMac.c_str(), static_cast<DWORD>(newMac.size() + 1));
 				//std::cerr << "Updating adapter index " << keyNameBuf2 << " (" << buf << "=" << keyNameBuf << ")" << std::endl;
 				//break;
@@ -252,11 +250,7 @@ static void resetAdapter(const std::string &adapterName) {
 		buf.push_back(static_cast<wchar_t>(adapterName[i]));
 	CoInitialize(0);
 	INetConnectionManager *pNCM = nullptr;
-	HRESULT hr = ::CoCreateInstance(guid,
-		nullptr,
-		CLSCTX_ALL,
-		__uuidof(INetConnectionManager),
-		(void**)&pNCM);
+	HRESULT hr = ::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&pNCM);
 	if (pNCM == nullptr)
 		puts("Failed to instantiate required object");
 	else {
