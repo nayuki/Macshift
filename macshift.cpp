@@ -32,9 +32,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
 // Function prototypes
-static std::string randomizeMac();
 static void showHelp(const std::string &exePath);
 static bool isValidMac(const std::string &str);
+static std::string randomizeMac();
 static void setMac(const std::string &AdapterName, const std::string &newMac);
 static void resetAdapter(const std::string &AdapterName);
 
@@ -109,26 +109,6 @@ int main(int argc, char **argv) {
 }
 
 
-extern std::vector<unsigned long> validMacs;
-
-//Generates a random MAC that is actually plausible
-static std::string randomizeMac() {
-	long long temp = static_cast<long long>(validMacs[rand() % validMacs.size()]);
-	for (int i = 0; i < 3; i++) {
-		temp <<= 8;
-		temp |= rand() & 0xFF;
-	}
-	
-	static const char *HEX_DIGITS = "0123456789ABCDEF";
-	std::string result;
-	for (int i = 11; i >= 0; i--) {
-		result.insert(result.begin(), HEX_DIGITS[temp & 0xF]);
-		temp >>= 4;
-	}
-	return result;
-}
-
-
 static void showHelp(const std::string &exePath) {
 	std::cerr << "Usage: " << exePath << " AdapterName [Options]" << std::endl;
 	
@@ -164,6 +144,26 @@ static bool isValidMac(const std::string &str) {
 			return false;
 	}
 	return true;
+}
+
+
+extern std::vector<unsigned long> validMacs;
+
+//Generates a random MAC that is actually plausible
+static std::string randomizeMac() {
+	long long temp = static_cast<long long>(validMacs[rand() % validMacs.size()]);
+	for (int i = 0; i < 3; i++) {
+		temp <<= 8;
+		temp |= rand() & 0xFF;
+	}
+	
+	static const char *HEX_DIGITS = "0123456789ABCDEF";
+	std::string result;
+	for (int i = 11; i >= 0; i--) {
+		result.insert(result.begin(), HEX_DIGITS[temp & 0xF]);
+		temp >>= 4;
+	}
+	return result;
 }
 
 
