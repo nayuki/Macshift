@@ -1,4 +1,7 @@
-unsigned long validMacs[] = {
+#include <vector>
+
+
+std::vector<unsigned long> validMacs{
 	0x000000,
 	0x000001,
 	0x000002,

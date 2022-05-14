@@ -188,8 +188,7 @@ static void showHelp() {
 
 //Generates a random MAC that is actually plausible
 static std::string randomizeMac() {
-	std::size_t numMacs = sizeof(validMacs) / sizeof(validMacs[0]);
-	long long temp = static_cast<long long>(validMacs[rand() % numMacs]);
+	long long temp = static_cast<long long>(validMacs[rand() % validMacs.size()]);
 	for (int i = 0; i < 3; i++) {
 		temp <<= 8;
 		temp |= rand() & 0xFF;
