@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
 	
 	std::string adapter = "";
 	bool isMacModeSet = false;
-	srand(GetTickCount());
+	srand(static_cast<unsigned int>(GetTickCount64()));
 	std::string newMac = randomizeMac();
 	
 	// Parse command-line arguments
