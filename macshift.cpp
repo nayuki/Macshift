@@ -286,16 +286,16 @@ static void resetAdapter(const std::string &adapterName) {
 		throw std::runtime_error("Failed to instantiate required object");
 	auto conMgrFinally = finally([conMgr]{ conMgr->Release(); });
 	
-	IEnumNetConnection *pENC;
-	conMgr->EnumConnections(NCME_DEFAULT, &pENC);
-	if (pENC == nullptr)
+	IEnumNetConnection *enumCon;
+	conMgr->EnumConnections(NCME_DEFAULT, &enumCon);
+	if (enumCon == nullptr)
 		throw std::runtime_error("Could not enumerate Network Connections");
-	auto pENCFinally = finally([pENC]{ pENC->Release(); });
+	auto enumConFinally = finally([enumCon]{ enumCon->Release(); });
 	
 	while (true) {
 		INetConnection *pNC;
 		ULONG fetched;
-		pENC->Next(1, &pNC, &fetched);
+		enumCon->Next(1, &pNC, &fetched);
 		if (fetched == 0)
 			break;
 		if (pNC == nullptr)
