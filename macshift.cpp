@@ -293,23 +293,23 @@ static void resetAdapter(const std::string &adapterName) {
 	auto enumConFinally = finally([enumCon]{ enumCon->Release(); });
 	
 	while (true) {
-		INetConnection *pNC;
+		INetConnection *netCon;
 		ULONG fetched;
-		enumCon->Next(1, &pNC, &fetched);
+		enumCon->Next(1, &netCon, &fetched);
 		if (fetched == 0)
 			break;
-		if (pNC == nullptr)
+		if (netCon == nullptr)
 			continue;
 		
 		NETCON_PROPERTIES *pNCP;
-		pNC->GetProperties(&pNCP);
+		netCon->GetProperties(&pNCP);
 		if (pNCP == nullptr)
 			continue;
 		auto pNCPFinally = finally([pNCP, NcFreeNetConProperties]{ NcFreeNetConProperties(pNCP); });
 		
 		if (wcscmp(pNCP->pszwName, buf.c_str()) == 0) {
-			pNC->Disconnect();
-			pNC->Connect();
+			netCon->Disconnect();
+			netCon->Connect();
 		}
 	}
 }
