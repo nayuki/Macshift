@@ -30,7 +30,6 @@
 #include <windows.h>
 #include <objbase.h>
 #include <netcon.h>
-#include <stdio.h>
 
 
 // Function prototypes
@@ -102,12 +101,18 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 	
-	std::cerr << "Setting MAC on adapter '" << adapter << "' to " << (newMac.size() > 0 ? newMac : std::string("original MAC")) << "..." << std::endl;
-	setMac(adapter, newMac);
-	std::cerr << "Resetting adapter..." << std::endl;
-	resetAdapter(adapter);
-	std::cerr << "Done" << std::endl;
-	return EXIT_SUCCESS;
+	try {
+		std::cerr << "Setting MAC on adapter '" << adapter << "' to " << (newMac.size() > 0 ? newMac : std::string("original MAC")) << "..." << std::endl;
+		setMac(adapter, newMac);
+		std::cerr << "Resetting adapter..." << std::endl;
+		resetAdapter(adapter);
+		std::cerr << "Done" << std::endl;
+		return EXIT_SUCCESS;
+	}
+	catch (const std::runtime_error &e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		return EXIT_FAILURE;
+	}
 }
 
 
@@ -193,8 +198,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 	{
 		HKEY hListKey;
 		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS) {
-			puts("Failed to open adapter list key");
-			return;
+			throw std::runtime_error("Failed to open adapter list key");
 		}
 		auto hListKeyFinally = finally([hListKey]{ RegCloseKey(hListKey); });
 		
@@ -232,8 +236,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 	{
 		HKEY hListKey;
 		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS) {
-			puts("Failed to open adapter list key in Phase 2");
-			return;
+			throw std::runtime_error("Failed to open adapter list key in Phase 2");
 		}
 		auto hListKeyFinally = finally([hListKey]{ RegCloseKey(hListKey); });
 		
@@ -266,8 +269,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 static void resetAdapter(const std::string &adapterName) {
 	HMODULE netshellLib = LoadLibrary("Netshell.dll");
 	if (netshellLib == nullptr) {
-		puts("Couldn't load Netshell.dll");
-		return;
+		throw std::runtime_error("Couldn't load Netshell.dll");
 	}
 	auto netshellLibFinally = finally([netshellLib]{ FreeLibrary(netshellLib); });
 	
@@ -275,8 +277,7 @@ static void resetAdapter(const std::string &adapterName) {
 		(void (__stdcall *)(struct tagNETCON_PROPERTIES *))
 		GetProcAddress(netshellLib, "NcFreeNetconProperties");
 	if (NcFreeNetConProperties == nullptr) {
-		puts("Couldn't load required DLL function");
-		return;
+		throw std::runtime_error("Couldn't load required DLL function");
 	}
 	
 	std::wstring buf;
@@ -290,16 +291,14 @@ static void resetAdapter(const std::string &adapterName) {
 	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, {0xB1,0xD0,0x00,0x80,0x5F,0xC1,0x27,0x0E}};
 	HRESULT hr = ::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&pNCM);
 	if (pNCM == nullptr) {
-		puts("Failed to instantiate required object");
-		return;
+		throw std::runtime_error("Failed to instantiate required object");
 	}
 	auto pNCMFinally = finally([pNCM]{ pNCM->Release(); });
 	
 	IEnumNetConnection *pENC;
 	pNCM->EnumConnections(NCME_DEFAULT, &pENC);
 	if (pENC == nullptr) {
-		puts("Could not enumerate Network Connections");
-		return;
+		throw std::runtime_error("Could not enumerate Network Connections");
 	}
 	auto pENCFinally = finally([pENC]{ pENC->Release(); });
 	
