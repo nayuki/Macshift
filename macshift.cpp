@@ -62,33 +62,28 @@ int main(int argc, char **argv) {
 					showHelp(argVec[0]);
 					return EXIT_FAILURE;
 				} else if (arg == "-d" || arg == "-r" || arg == "-a") {
-					if (isMacModeSet) {
+					if (isMacModeSet)
 						throw std::invalid_argument("Command-line arguments contain more than one MAC address mode.");
-					}
 					isMacModeSet = true;
 					if (arg == "-d")
 						newMac = "";
 					else if (arg == "-r")
 						;  // Do nothing else because newMac is already random
 					else if (arg == "-a") {
-						if (argVec.size() - i <= 1) {
+						if (argVec.size() - i <= 1)
 							throw std::invalid_argument("Missing MAC address argument.");
-						}
 						i++;
 						const std::string &val = argVec.at(i);
-						if (!isValidMac(val)) {
+						if (!isValidMac(val))
 							throw std::invalid_argument("Invalid MAC address, must match pattern /[0-9a-fA-F]{12}/.");
-						}
 						newMac = val;
 					} else
 						throw std::logic_error("Unreachable");
-				} else {
+				} else
 					throw std::invalid_argument("Unrecognized command-line flag.");
-				}
 			} else {  // Not a flag
-				if (!adapter.empty()) {
+				if (!adapter.empty())
 					throw std::invalid_argument("Command-line arguments contain more than network adapter name.");
-				}
 				adapter = arg;
 			}
 		}
@@ -198,9 +193,8 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 	std::vector<char> id(512);
 	{
 		HKEY hListKey;
-		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS) {
+		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS)
 			throw std::runtime_error("Failed to open adapter list key");
-		}
 		auto hListKeyFinally = finally([hListKey]{ RegCloseKey(hListKey); });
 		
 		bool found = false;
@@ -236,9 +230,8 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 	
 	{
 		HKEY hListKey;
-		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS) {
+		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS)
 			throw std::runtime_error("Failed to open adapter list key in Phase 2");
-		}
 		auto hListKeyFinally = finally([hListKey]{ RegCloseKey(hListKey); });
 		
 		for (DWORD i = 0; ; i++) {
@@ -269,17 +262,15 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 
 static void resetAdapter(const std::string &adapterName) {
 	HMODULE netshellLib = LoadLibrary("Netshell.dll");
-	if (netshellLib == nullptr) {
+	if (netshellLib == nullptr)
 		throw std::runtime_error("Couldn't load Netshell.dll");
-	}
 	auto netshellLibFinally = finally([netshellLib]{ FreeLibrary(netshellLib); });
 	
 	void (__stdcall *NcFreeNetConProperties)(NETCON_PROPERTIES *) =
 		(void (__stdcall *)(struct tagNETCON_PROPERTIES *))
 		GetProcAddress(netshellLib, "NcFreeNetconProperties");
-	if (NcFreeNetConProperties == nullptr) {
+	if (NcFreeNetConProperties == nullptr)
 		throw std::runtime_error("Couldn't load required DLL function");
-	}
 	
 	std::wstring buf;
 	for (std::size_t i = 0; i < adapterName.size(); i++)
@@ -291,16 +282,14 @@ static void resetAdapter(const std::string &adapterName) {
 	INetConnectionManager *pNCM = nullptr;
 	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, {0xB1,0xD0,0x00,0x80,0x5F,0xC1,0x27,0x0E}};
 	HRESULT hr = ::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&pNCM);
-	if (pNCM == nullptr) {
+	if (pNCM == nullptr)
 		throw std::runtime_error("Failed to instantiate required object");
-	}
 	auto pNCMFinally = finally([pNCM]{ pNCM->Release(); });
 	
 	IEnumNetConnection *pENC;
 	pNCM->EnumConnections(NCME_DEFAULT, &pENC);
-	if (pENC == nullptr) {
+	if (pENC == nullptr)
 		throw std::runtime_error("Could not enumerate Network Connections");
-	}
 	auto pENCFinally = finally([pENC]{ pENC->Release(); });
 	
 	while (true) {
