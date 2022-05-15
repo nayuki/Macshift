@@ -24,6 +24,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cwchar>
+#include <exception>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -36,6 +37,7 @@
 
 
 // Function prototypes
+static void submain(const std::vector<std::string> &argVec);
 static void showHelp(const std::string &exePath);
 static bool isValidMac(const std::string &str);
 static std::string randomMac();
@@ -51,75 +53,76 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < argc; i++)
 		argVec.push_back(std::string(argv[i]));
 	
-	std::string adapter = "";
-	bool isMacModeSet = false;
 	srand(static_cast<unsigned int>(GetTickCount64()));
-	std::string newMac = randomMac();
-	
-	// Parse command-line arguments
-	try {
-		for (size_t i = 1; i < argVec.size(); i++) {
-			const std::string &arg = argVec.at(i);
-			if (arg.find("-") == 0) {  // A flag
-				if (arg == "-h")
-					showHelp(argVec.at(0));
-				else if (arg == "-d" || arg == "-r" || arg == "-a") {
-					if (isMacModeSet)
-						throw std::invalid_argument("Command-line arguments contain more than one MAC address mode");
-					isMacModeSet = true;
-					if (arg == "-d")
-						newMac = "";
-					else if (arg == "-r")
-						;  // Do nothing else because newMac is already random
-					else if (arg == "-a") {
-						if (argVec.size() - i <= 1)
-							throw std::invalid_argument("Missing MAC address argument");
-						i++;
-						const std::string &val = argVec.at(i);
-						if (!isValidMac(val))
-							throw std::invalid_argument("Invalid MAC address, must match pattern /[0-9a-fA-F]{12}/");
-						newMac = val;
-					} else
-						throw std::logic_error("Unreachable");
-				} else
-					throw std::invalid_argument("Unrecognized command-line flag");
-			} else {  // Not a flag
-				if (!adapter.empty())
-					throw std::invalid_argument("Command-line arguments contain more than network adapter name");
-				adapter = arg;
-			}
-		}
-	} catch (const std::invalid_argument &e) {
-		std::cerr << "Error: " << e.what() << std::endl;
-		return EXIT_FAILURE;
-	}
-	
-	if (adapter == "")
-		showHelp(argVec.at(0));
 	
 	try {
-		std::cerr << "New MAC address: ";
-		if (newMac == "")
-			std::cerr << "(restore)";
-		else {
-			for (std::size_t i = 0; i < 12; i += 2) {
-				if (i > 0)
-					std::cerr << "-";
-				std::cerr << newMac.substr(i, 2);
-			}
-		}
-		std::cerr << std::endl;
-		
-		std::string adapterId = findAdapterId(adapter);
-		std::cerr << "Network adapter ID: " << adapterId << std::endl;
-		setMac(adapterId, newMac);
-		resetAdapter(adapter);
-	} catch (const std::runtime_error &e) {
+		submain(argVec);
+	} catch (const std::exception &e) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
 	
 	return EXIT_SUCCESS;
+}
+
+
+static void submain(const std::vector<std::string> &argVec) {
+	std::string adapter = "";
+	bool isMacModeSet = false;
+	std::string newMac = randomMac();
+	
+	// Parse command-line arguments
+	for (size_t i = 1; i < argVec.size(); i++) {
+		const std::string &arg = argVec.at(i);
+		if (arg.find("-") == 0) {  // A flag
+			if (arg == "-h")
+				showHelp(argVec.at(0));
+			else if (arg == "-d" || arg == "-r" || arg == "-a") {
+				if (isMacModeSet)
+					throw std::invalid_argument("Command-line arguments contain more than one MAC address mode");
+				isMacModeSet = true;
+				if (arg == "-d")
+					newMac = "";
+				else if (arg == "-r")
+					;  // Do nothing else because newMac is already random
+				else if (arg == "-a") {
+					if (argVec.size() - i <= 1)
+						throw std::invalid_argument("Missing MAC address argument");
+					i++;
+					const std::string &val = argVec.at(i);
+					if (!isValidMac(val))
+						throw std::invalid_argument("Invalid MAC address, must match pattern /[0-9a-fA-F]{12}/");
+					newMac = val;
+				} else
+					throw std::logic_error("Unreachable");
+			} else
+				throw std::invalid_argument("Unrecognized command-line flag");
+		} else {  // Not a flag
+			if (!adapter.empty())
+				throw std::invalid_argument("Command-line arguments contain more than network adapter name");
+			adapter = arg;
+		}
+	}
+	
+	if (adapter == "")
+		showHelp(argVec.at(0));
+	
+	std::cerr << "New MAC address: ";
+	if (newMac == "")
+		std::cerr << "(restore)";
+	else {
+		for (std::size_t i = 0; i < 12; i += 2) {
+			if (i > 0)
+				std::cerr << "-";
+			std::cerr << newMac.substr(i, 2);
+		}
+	}
+	std::cerr << std::endl;
+	
+	std::string adapterId = findAdapterId(adapter);
+	std::cerr << "Network adapter ID: " << adapterId << std::endl;
+	setMac(adapterId, newMac);
+	resetAdapter(adapter);
 }
 
 
@@ -148,7 +151,7 @@ static void showHelp(const std::string &exePath) {
 	};
 	for (const char *line : LINES)
 		std::cerr << line << std::endl;
-		
+	
 	std::exit(EXIT_FAILURE);
 }
 
