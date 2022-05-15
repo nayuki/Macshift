@@ -99,7 +99,7 @@ static void submain(const std::vector<std::string> &argVec) {
 				throw std::invalid_argument("Unrecognized command-line flag");
 		} else {  // Not a flag
 			if (!adapter.empty())
-				throw std::invalid_argument("Command-line arguments contain more than network adapter name");
+				throw std::invalid_argument("Command-line arguments contain more than one network adapter name");
 			adapter = arg;
 		}
 	}
