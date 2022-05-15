@@ -173,9 +173,8 @@ static std::string randomizeMac() {
 
 
 static void setMac(const std::string &adapterName, const std::string &newMac) {
-	HKEY hListKey = nullptr;
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey);
-	if (hListKey == nullptr) {
+	HKEY hListKey;
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS) {
 		puts("Failed to open adapter list key");
 		return;
 	}
@@ -187,9 +186,8 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 	for (DWORD i = 0; RegEnumKeyEx(hListKey, i, keyNameBuf, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime) == ERROR_SUCCESS; i++) {
 		std::string keyNameBuf2 = keyNameBuf;
 		keyNameBuf2 += "\\Connection";
-		HKEY hKey = nullptr;
-		RegOpenKeyEx(hListKey, keyNameBuf2.c_str(), 0, KEY_READ, &hKey);
-		if (hKey != nullptr) {
+		HKEY hKey;
+		if (RegOpenKeyEx(hListKey, keyNameBuf2.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
 			keyNameBufSiz = 512;
 			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2.c_str(), &keyNameBufSiz) == ERROR_SUCCESS
 					&& keyNameBuf2 == adapterName) {
@@ -208,16 +206,14 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 		return;
 	}
 	
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey);
-	if (hListKey == nullptr) {
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS) {
 		puts("Failed to open adapter list key in Phase 2");
 		return;
 	}
 	char keyNameBuf2[512];
 	for (DWORD i = 0; RegEnumKeyEx(hListKey, i, keyNameBuf2, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime) == ERROR_SUCCESS; i++) {
-		HKEY hKey = nullptr;
-		RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ | KEY_SET_VALUE, &hKey);
-		if (hKey != nullptr) {
+		HKEY hKey;
+		if (RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ | KEY_SET_VALUE, &hKey) == ERROR_SUCCESS) {
 			keyNameBufSiz = 512;
 			char buf[512];
 			if (RegQueryValueEx(hKey, "NetCfgInstanceId", 0, &crap, (LPBYTE)buf, &keyNameBufSiz) == ERROR_SUCCESS
