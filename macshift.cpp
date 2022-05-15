@@ -258,8 +258,10 @@ static void setMac(const std::string &adapterId, const std::string &newMac) {
 				&& std::string(value.data()) == adapterId) {
 			if (RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, reinterpret_cast<const BYTE *>(newMac.c_str()), static_cast<DWORD>(newMac.size() + 1)) != ERROR_SUCCESS)
 				throw std::runtime_error("Failed to set registry key");
+			return;  // Success
 		}
 	}
+	throw std::runtime_error("Failed to find adapter by ID; please run this program as Administrator");
 }
 
 
