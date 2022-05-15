@@ -302,7 +302,7 @@ static void resetAdapter(const std::string &adapterName) {
 	
 	INetConnectionManager *conMgr;
 	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, {0xB1,0xD0,0x00,0x80,0x5F,0xC1,0x27,0x0E}};
-	if (::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&conMgr) != S_OK)
+	if (::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), reinterpret_cast<void**>(&conMgr)) != S_OK)
 		throw std::runtime_error("Failed to create connection manager");
 	auto conMgrFinally = finally([conMgr]{ conMgr->Release(); });
 	
