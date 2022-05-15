@@ -45,8 +45,7 @@ static void resetAdapter(const std::string &AdapterName);
 
 
 int main(int argc, char **argv) {
-	std::cerr << "Macshift v1.1 - the simple Windows MAC address changing utility" << std::endl;
-	std::cerr << std::endl;
+	std::cerr << "Macshift v2.0 - the simple Windows MAC address changing utility" << std::endl;
 	
 	std::vector<std::string> argVec;
 	for (int i = 0; i < argc; i++)
@@ -127,6 +126,8 @@ int main(int argc, char **argv) {
 
 
 static void showHelp(const std::string &exePath) {
+	std::cerr << "https://www.nayuki.io/" << std::endl;
+	std::cerr << std::endl;
 	std::cerr << "Usage: " << exePath << " AdapterName [Options]" << std::endl;
 	std::cerr << std::endl;
 	std::cerr << "Example: " << exePath << " \"Wi-Fi\" -r" << std::endl;
