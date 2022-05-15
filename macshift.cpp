@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 					return EXIT_FAILURE;
 				} else if (arg == "-d" || arg == "-r" || arg == "-a") {
 					if (isMacModeSet)
-						throw std::invalid_argument("Command-line arguments contain more than one MAC address mode.");
+						throw std::invalid_argument("Command-line arguments contain more than one MAC address mode");
 					isMacModeSet = true;
 					if (arg == "-d")
 						newMac = "";
@@ -74,19 +74,19 @@ int main(int argc, char **argv) {
 						;  // Do nothing else because newMac is already random
 					else if (arg == "-a") {
 						if (argVec.size() - i <= 1)
-							throw std::invalid_argument("Missing MAC address argument.");
+							throw std::invalid_argument("Missing MAC address argument");
 						i++;
 						const std::string &val = argVec.at(i);
 						if (!isValidMac(val))
-							throw std::invalid_argument("Invalid MAC address, must match pattern /[0-9a-fA-F]{12}/.");
+							throw std::invalid_argument("Invalid MAC address, must match pattern /[0-9a-fA-F]{12}/");
 						newMac = val;
 					} else
 						throw std::logic_error("Unreachable");
 				} else
-					throw std::invalid_argument("Unrecognized command-line flag.");
+					throw std::invalid_argument("Unrecognized command-line flag");
 			} else {  // Not a flag
 				if (!adapter.empty())
-					throw std::invalid_argument("Command-line arguments contain more than network adapter name.");
+					throw std::invalid_argument("Command-line arguments contain more than network adapter name");
 				adapter = arg;
 			}
 		}
