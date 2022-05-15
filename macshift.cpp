@@ -279,15 +279,15 @@ static void resetAdapter(const std::string &adapterName) {
 	(void)CoInitialize(nullptr);
 	auto comFinally = finally([]{ CoUninitialize(); });
 	
-	INetConnectionManager *pNCM = nullptr;
+	INetConnectionManager *conMgr = nullptr;
 	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, {0xB1,0xD0,0x00,0x80,0x5F,0xC1,0x27,0x0E}};
-	HRESULT hr = ::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&pNCM);
-	if (pNCM == nullptr)
+	HRESULT hr = ::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&conMgr);
+	if (conMgr == nullptr)
 		throw std::runtime_error("Failed to instantiate required object");
-	auto pNCMFinally = finally([pNCM]{ pNCM->Release(); });
+	auto conMgrFinally = finally([conMgr]{ conMgr->Release(); });
 	
 	IEnumNetConnection *pENC;
-	pNCM->EnumConnections(NCME_DEFAULT, &pENC);
+	conMgr->EnumConnections(NCME_DEFAULT, &pENC);
 	if (pENC == nullptr)
 		throw std::runtime_error("Could not enumerate Network Connections");
 	auto pENCFinally = finally([pENC]{ pENC->Release(); });
