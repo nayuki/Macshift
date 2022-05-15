@@ -207,6 +207,9 @@ static Finally<F> finally(F f) {
 }
 
 
+static constexpr std::size_t TEXT_BUFFER_LEN = 512;
+
+
 static std::string findAdapterId(const std::string &adapterName) {
 	HKEY hListKey;
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS)
@@ -216,7 +219,7 @@ static std::string findAdapterId(const std::string &adapterName) {
 	for (DWORD i = 0; ; i++) {
 		std::string nameStr;
 		{
-			std::vector<char> name(512);
+			std::vector<char> name(TEXT_BUFFER_LEN);
 			DWORD nameLen = static_cast<DWORD>(name.size());
 			LSTATUS stat = RegEnumKeyEx(hListKey, i, name.data(), &nameLen, 0, nullptr, nullptr, nullptr);
 			if (stat == ERROR_NO_MORE_ITEMS)
@@ -232,7 +235,7 @@ static std::string findAdapterId(const std::string &adapterName) {
 			continue;
 		auto hKeyFinally = finally([hKey]{ RegCloseKey(hKey); });
 		
-		std::vector<char> value(512);
+		std::vector<char> value(TEXT_BUFFER_LEN);
 		DWORD valueLen = static_cast<DWORD>(value.size());
 		if (RegQueryValueEx(hKey, "Name", nullptr, nullptr, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
 				&& std::string(value.data()) == adapterName) {
@@ -250,7 +253,7 @@ static void setMac(const std::string &adapterId, const std::string &newMac) {
 	auto hListKeyFinally = finally([hListKey]{ RegCloseKey(hListKey); });
 	
 	for (DWORD i = 0; ; i++) {
-		std::vector<char> name(512);
+		std::vector<char> name(TEXT_BUFFER_LEN);
 		{
 			DWORD nameLen = static_cast<DWORD>(name.size());
 			LSTATUS stat = RegEnumKeyEx(hListKey, i, name.data(), &nameLen, 0, nullptr, nullptr, nullptr);
@@ -265,7 +268,7 @@ static void setMac(const std::string &adapterId, const std::string &newMac) {
 			continue;
 		auto hKeyFinally = finally([hKey]{ RegCloseKey(hKey); });
 		
-		std::vector<char> value(512);
+		std::vector<char> value(TEXT_BUFFER_LEN);
 		DWORD valueLen = static_cast<DWORD>(value.size());
 		if (RegQueryValueEx(hKey, "NetCfgInstanceId", nullptr, nullptr, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
 				&& std::string(value.data()) == adapterId) {
