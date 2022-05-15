@@ -37,7 +37,7 @@
 // Function prototypes
 static void showHelp(const std::string &exePath);
 static bool isValidMac(const std::string &str);
-static std::string randomizeMac();
+static std::string randomMac();
 static void setMac(const std::string &AdapterName, const std::string &newMac);
 static void resetAdapter(const std::string &AdapterName);
 
@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 	std::string adapter = "";
 	bool isMacModeSet = false;
 	srand(static_cast<unsigned int>(GetTickCount64()));
-	std::string newMac = randomizeMac();
+	std::string newMac = randomMac();
 	
 	// Parse command-line arguments
 	try {
@@ -158,7 +158,7 @@ static bool isValidMac(const std::string &str) {
 extern std::vector<long> validMacs;
 
 // Generates a random MAC that is actually plausible.
-static std::string randomizeMac() {
+static std::string randomMac() {
 	long long temp = validMacs.at(rand() % validMacs.size());
 	for (int i = 0; i < 3; i++) {
 		temp <<= 8;
