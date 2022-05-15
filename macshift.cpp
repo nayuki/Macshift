@@ -172,6 +172,22 @@ static std::string randomizeMac() {
 }
 
 
+// https://stackoverflow.com/questions/161177/does-c-support-finally-blocks-and-whats-this-raii-i-keep-hearing-about/25510879#25510879
+template <typename F>
+class Finally {
+	private: F func;
+	public: Finally(F f) :
+		func(f) {}
+	public: ~Finally() {
+		func();
+	}
+};
+template <typename F>
+Finally<F> finally(F f) {
+	return Finally<F>(f);
+}
+
+
 static void setMac(const std::string &adapterName, const std::string &newMac) {
 	std::vector<char> id(512);
 	{
@@ -180,6 +196,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 			puts("Failed to open adapter list key");
 			return;
 		}
+		auto hListKeyFinally = finally([hListKey]{ RegCloseKey(hListKey); });
 		
 		bool found = false;
 		for (DWORD i = 0; ; i++) {
@@ -191,20 +208,20 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 			std::string subkey = id.data();
 			subkey += "\\Connection";
 			HKEY hKey;
-			if (RegOpenKeyEx(hListKey, subkey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-				std::vector<char> value(512);
-				DWORD valueLen = static_cast<DWORD>(value.size());
-				DWORD discard1;
-				if (RegQueryValueEx(hKey, "Name", nullptr, &discard1, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
-						&& std::string(value.data()) == adapterName) {
-					std::cerr << "Adapter ID is " << id.data() << std::endl;
-					found = true;
-					break;
-				}
-				RegCloseKey(hKey);
+			if (RegOpenKeyEx(hListKey, subkey.c_str(), 0, KEY_READ, &hKey) != ERROR_SUCCESS)
+				continue;
+			auto hKeyFinally = finally([hKey]{ RegCloseKey(hKey); });
+			
+			std::vector<char> value(512);
+			DWORD valueLen = static_cast<DWORD>(value.size());
+			DWORD discard1;
+			if (RegQueryValueEx(hKey, "Name", nullptr, &discard1, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
+					&& std::string(value.data()) == adapterName) {
+				std::cerr << "Adapter ID is " << id.data() << std::endl;
+				found = true;
+				break;
 			}
 		}
-		RegCloseKey(hListKey);
 		if (!found) {
 			std::cerr << "Could not find adapter name '" << adapterName << "'." << std::endl;
 			std::cerr << "Please make sure this is the name you gave it in Network Connections." << std::endl;
@@ -218,6 +235,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 			puts("Failed to open adapter list key in Phase 2");
 			return;
 		}
+		auto hListKeyFinally = finally([hListKey]{ RegCloseKey(hListKey); });
 		
 		for (DWORD i = 0; ; i++) {
 			std::vector<char> name(512);
@@ -227,20 +245,20 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 				break;
 			
 			HKEY hKey;
-			if (RegOpenKeyEx(hListKey, name.data(), 0, KEY_READ | KEY_SET_VALUE, &hKey) == ERROR_SUCCESS) {
-				std::vector<char> value(512);
-				DWORD valueLen = static_cast<DWORD>(value.size());
-				DWORD discard1;
-				if (RegQueryValueEx(hKey, "NetCfgInstanceId", nullptr, &discard1, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
-						&& std::string(value.data()) == std::string(id.data())) {
-					RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)newMac.c_str(), static_cast<DWORD>(newMac.size() + 1));
-					//std::cerr << "Updating adapter index " << keyNameBuf2 << " (" << buf << "=" << keyNameBuf << ")" << std::endl;
-					//break;
-				}
-				RegCloseKey(hKey);
+			if (RegOpenKeyEx(hListKey, name.data(), 0, KEY_READ | KEY_SET_VALUE, &hKey) != ERROR_SUCCESS)
+				continue;
+			auto hKeyFinally = finally([hKey]{ RegCloseKey(hKey); });
+			
+			std::vector<char> value(512);
+			DWORD valueLen = static_cast<DWORD>(value.size());
+			DWORD discard1;
+			if (RegQueryValueEx(hKey, "NetCfgInstanceId", nullptr, &discard1, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
+					&& std::string(value.data()) == std::string(id.data())) {
+				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)newMac.c_str(), static_cast<DWORD>(newMac.size() + 1));
+				//std::cerr << "Updating adapter index " << keyNameBuf2 << " (" << buf << "=" << keyNameBuf << ")" << std::endl;
+				//break;
 			}
 		}
-		RegCloseKey(hListKey);
 	}
 }
 
@@ -253,6 +271,8 @@ static void resetAdapter(const std::string &adapterName) {
 		puts("Couldn't load Netshell.dll");
 		return;
 	}
+	auto netshellLibFinally = finally([netshellLib]{ FreeLibrary(netshellLib); });
+	
 	void (__stdcall *NcFreeNetConProperties)(NETCON_PROPERTIES *) =
 		(void (__stdcall *)(struct tagNETCON_PROPERTIES *))
 		GetProcAddress(netshellLib, "NcFreeNetconProperties");
@@ -264,40 +284,44 @@ static void resetAdapter(const std::string &adapterName) {
 	std::wstring buf;
 	for (std::size_t i = 0; i < adapterName.size(); i++)
 		buf.push_back(static_cast<wchar_t>(adapterName[i]));
+	
 	(void)CoInitialize(nullptr);
+	auto comFinally = finally([]{ CoUninitialize(); });
+	
 	INetConnectionManager *pNCM = nullptr;
 	HRESULT hr = ::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&pNCM);
-	if (pNCM == nullptr)
+	if (pNCM == nullptr) {
 		puts("Failed to instantiate required object");
-	else {
-		IEnumNetConnection *pENC;
-		pNCM->EnumConnections(NCME_DEFAULT, &pENC);
-		if (pENC == nullptr)
-			puts("Could not enumerate Network Connections");
-		else {
-			while (true) {
-				INetConnection *pNC;
-				ULONG fetched;
-				pENC->Next(1, &pNC, &fetched);
-				if (fetched == 0)
-					break;
-				if (pNC != nullptr) {
-					NETCON_PROPERTIES *pNCP;
-					pNC->GetProperties(&pNCP);
-					if (pNCP != nullptr) {
-						if (wcscmp(pNCP->pszwName, buf.c_str()) == 0) {
-							pNC->Disconnect();
-							pNC->Connect();
-						}
-						NcFreeNetConProperties(pNCP);
-					}
-				}
-			}
-			pENC->Release();
-		}
-		pNCM->Release();
+		return;
 	}
+	auto pNCMFinally = finally([pNCM]{ pNCM->Release(); });
 	
-	FreeLibrary(netshellLib);
-	CoUninitialize();
+	IEnumNetConnection *pENC;
+	pNCM->EnumConnections(NCME_DEFAULT, &pENC);
+	if (pENC == nullptr) {
+		puts("Could not enumerate Network Connections");
+		return;
+	}
+	auto pENCFinally = finally([pENC]{ pENC->Release(); });
+	
+	while (true) {
+		INetConnection *pNC;
+		ULONG fetched;
+		pENC->Next(1, &pNC, &fetched);
+		if (fetched == 0)
+			break;
+		if (pNC == nullptr)
+			continue;
+		
+		NETCON_PROPERTIES *pNCP;
+		pNC->GetProperties(&pNCP);
+		if (pNCP == nullptr)
+			continue;
+		auto pNCPFinally = finally([pNCP, NcFreeNetConProperties]{ NcFreeNetConProperties(pNCP); });
+		
+		if (wcscmp(pNCP->pszwName, buf.c_str()) == 0) {
+			pNC->Disconnect();
+			pNC->Connect();
+		}
+	}
 }
