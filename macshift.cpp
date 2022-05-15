@@ -173,60 +173,75 @@ static std::string randomizeMac() {
 
 
 static void setMac(const std::string &adapterName, const std::string &newMac) {
-	HKEY hListKey;
-	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS) {
-		puts("Failed to open adapter list key");
-		return;
-	}
-	FILETIME writtenTime;
-	char keyNameBuf[512];
-	DWORD keyNameBufSiz = 512;
-	DWORD crap;
-	bool found = false;
-	for (DWORD i = 0; RegEnumKeyEx(hListKey, i, keyNameBuf, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime) == ERROR_SUCCESS; i++) {
-		std::string keyNameBuf2 = keyNameBuf;
-		keyNameBuf2 += "\\Connection";
-		HKEY hKey;
-		if (RegOpenKeyEx(hListKey, keyNameBuf2.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-			keyNameBufSiz = 512;
-			if (RegQueryValueEx(hKey, "Name", 0, &crap, (LPBYTE)keyNameBuf2.c_str(), &keyNameBufSiz) == ERROR_SUCCESS
-					&& keyNameBuf2 == adapterName) {
-				std::cerr << "Adapter ID is " << keyNameBuf << std::endl;
-				found = true;
-				break;
-			}
-			RegCloseKey(hKey);
+	std::vector<char> id(512);
+	{
+		HKEY hListKey;
+		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS) {
+			puts("Failed to open adapter list key");
+			return;
 		}
-		keyNameBufSiz = 512;
-	}
-	RegCloseKey(hListKey);
-	if (!found) {
-		std::cerr << "Could not find adapter name '" << adapterName << "'." << std::endl;
-		std::cerr << "Please make sure this is the name you gave it in Network Connections." << std::endl;
-		return;
+		
+		bool found = false;
+		for (DWORD i = 0; ; i++) {
+			DWORD idLen = static_cast<DWORD>(id.size());
+			FILETIME discard0;
+			if (RegEnumKeyEx(hListKey, i, id.data(), &idLen, 0, nullptr, nullptr, &discard0) != ERROR_SUCCESS)
+				break;
+			
+			std::string subkey = id.data();
+			subkey += "\\Connection";
+			HKEY hKey;
+			if (RegOpenKeyEx(hListKey, subkey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+				std::vector<char> value(512);
+				DWORD valueLen = static_cast<DWORD>(value.size());
+				DWORD discard1;
+				if (RegQueryValueEx(hKey, "Name", nullptr, &discard1, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
+						&& std::string(value.data()) == adapterName) {
+					std::cerr << "Adapter ID is " << id.data() << std::endl;
+					found = true;
+					break;
+				}
+				RegCloseKey(hKey);
+			}
+		}
+		RegCloseKey(hListKey);
+		if (!found) {
+			std::cerr << "Could not find adapter name '" << adapterName << "'." << std::endl;
+			std::cerr << "Please make sure this is the name you gave it in Network Connections." << std::endl;
+			return;
+		}
 	}
 	
-	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS) {
-		puts("Failed to open adapter list key in Phase 2");
-		return;
-	}
-	char keyNameBuf2[512];
-	for (DWORD i = 0; RegEnumKeyEx(hListKey, i, keyNameBuf2, &keyNameBufSiz, 0, nullptr, nullptr, &writtenTime) == ERROR_SUCCESS; i++) {
-		HKEY hKey;
-		if (RegOpenKeyEx(hListKey, keyNameBuf2, 0, KEY_READ | KEY_SET_VALUE, &hKey) == ERROR_SUCCESS) {
-			keyNameBufSiz = 512;
-			char buf[512];
-			if (RegQueryValueEx(hKey, "NetCfgInstanceId", 0, &crap, (LPBYTE)buf, &keyNameBufSiz) == ERROR_SUCCESS
-					&& std::string(buf) == std::string(keyNameBuf)) {
-				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)newMac.c_str(), static_cast<DWORD>(newMac.size() + 1));
-				//std::cerr << "Updating adapter index " << keyNameBuf2 << " (" << buf << "=" << keyNameBuf << ")" << std::endl;
-				//break;
-			}
-			RegCloseKey(hKey);
+	{
+		HKEY hListKey;
+		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS) {
+			puts("Failed to open adapter list key in Phase 2");
+			return;
 		}
-		keyNameBufSiz = 512;
+		
+		for (DWORD i = 0; ; i++) {
+			std::vector<char> name(512);
+			DWORD nameLen = static_cast<DWORD>(name.size());
+			FILETIME discard0;
+			if (RegEnumKeyEx(hListKey, i, name.data(), &nameLen, 0, nullptr, nullptr, &discard0) != ERROR_SUCCESS)
+				break;
+			
+			HKEY hKey;
+			if (RegOpenKeyEx(hListKey, name.data(), 0, KEY_READ | KEY_SET_VALUE, &hKey) == ERROR_SUCCESS) {
+				std::vector<char> value(512);
+				DWORD valueLen = static_cast<DWORD>(value.size());
+				DWORD discard1;
+				if (RegQueryValueEx(hKey, "NetCfgInstanceId", nullptr, &discard1, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
+						&& std::string(value.data()) == std::string(id.data())) {
+					RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)newMac.c_str(), static_cast<DWORD>(newMac.size() + 1));
+					//std::cerr << "Updating adapter index " << keyNameBuf2 << " (" << buf << "=" << keyNameBuf << ")" << std::endl;
+					//break;
+				}
+				RegCloseKey(hKey);
+			}
+		}
+		RegCloseKey(hListKey);
 	}
-	RegCloseKey(hListKey);
 }
 
 
