@@ -30,6 +30,7 @@
 #include <vector>
 
 #include <windows.h>
+#include <winreg.h>
 #include <objbase.h>
 #include <netcon.h>
 
@@ -255,7 +256,8 @@ static void setMac(const std::string &adapterId, const std::string &newMac) {
 		DWORD valueLen = static_cast<DWORD>(value.size());
 		if (RegQueryValueEx(hKey, "NetCfgInstanceId", nullptr, nullptr, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
 				&& std::string(value.data()) == adapterId) {
-			RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, reinterpret_cast<const BYTE *>(newMac.c_str()), static_cast<DWORD>(newMac.size() + 1));
+			if (RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, reinterpret_cast<const BYTE *>(newMac.c_str()), static_cast<DWORD>(newMac.size() + 1)) != ERROR_SUCCESS)
+				throw std::runtime_error("Failed to set registry key");
 		}
 	}
 }
