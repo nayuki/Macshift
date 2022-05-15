@@ -61,10 +61,9 @@ int main(int argc, char **argv) {
 		for (size_t i = 1; i < argVec.size(); i++) {
 			const std::string &arg = argVec.at(i);
 			if (arg.find("-") == 0) {  // A flag
-				if (arg == "-h") {
+				if (arg == "-h")
 					showHelp(argVec.at(0));
-					return EXIT_FAILURE;
-				} else if (arg == "-d" || arg == "-r" || arg == "-a") {
+				else if (arg == "-d" || arg == "-r" || arg == "-a") {
 					if (isMacModeSet)
 						throw std::invalid_argument("Command-line arguments contain more than one MAC address mode");
 					isMacModeSet = true;
@@ -95,10 +94,8 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 	
-	if (adapter == "") {
+	if (adapter == "")
 		showHelp(argVec.at(0));
-		return EXIT_FAILURE;
-	}
 	
 	try {
 		std::cerr << "New MAC address: ";
@@ -151,6 +148,8 @@ static void showHelp(const std::string &exePath) {
 	};
 	for (const char *line : LINES)
 		std::cerr << line << std::endl;
+		
+	std::exit(EXIT_FAILURE);
 }
 
 
