@@ -186,7 +186,7 @@ class Finally {
 	}
 };
 template <typename F>
-Finally<F> finally(F f) {
+static Finally<F> finally(F f) {
 	return Finally<F>(f);
 }
 
