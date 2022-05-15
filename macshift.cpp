@@ -117,12 +117,12 @@ int main(int argc, char **argv) {
 		std::cerr << "Network adapter ID: " << adapterId << std::endl;
 		setMac(adapterId, newMac);
 		resetAdapter(adapter);
-		return EXIT_SUCCESS;
-	}
-	catch (const std::runtime_error &e) {
+	} catch (const std::runtime_error &e) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
+	
+	return EXIT_SUCCESS;
 }
 
 
