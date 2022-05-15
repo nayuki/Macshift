@@ -54,6 +54,7 @@ int main(int argc, char **argv) {
 	std::string newMac = randomizeMac();
 	
 	// Parse command-line arguments
+	try {
 		for (size_t i = 1; i < argVec.size(); i++) {
 			const std::string &arg = argVec.at(i);
 			if (arg.find("-") == 0) {  // A flag
@@ -62,8 +63,7 @@ int main(int argc, char **argv) {
 					return EXIT_FAILURE;
 				} else if (arg == "-d" || arg == "-r" || arg == "-a") {
 					if (isMacModeSet) {
-						std::cerr << "Error: Command-line arguments contain more than one MAC address mode." << std::endl;
-						return EXIT_FAILURE;
+						throw std::invalid_argument("Command-line arguments contain more than one MAC address mode.");
 					}
 					isMacModeSet = true;
 					if (arg == "-d")
@@ -72,30 +72,31 @@ int main(int argc, char **argv) {
 						;  // Do nothing else because newMac is already random
 					else if (arg == "-a") {
 						if (argVec.size() - i <= 1) {
-							std::cerr << "Error: Missing MAC address argument." << std::endl;
-							return EXIT_FAILURE;
+							throw std::invalid_argument("Missing MAC address argument.");
 						}
 						i++;
 						const std::string &val = argVec.at(i);
 						if (!isValidMac(val)) {
-							std::cerr << "Error: Invalid MAC address, must match pattern /[0-9a-fA-F]{12}/." << std::endl;
-							return EXIT_FAILURE;
+							throw std::invalid_argument("Invalid MAC address, must match pattern /[0-9a-fA-F]{12}/.");
 						}
 						newMac = val;
 					} else
 						throw std::logic_error("Unreachable");
 				} else {
-					std::cerr << "Error: Unrecognized command-line flag." << std::endl;
-					return EXIT_FAILURE;
+					throw std::invalid_argument("Unrecognized command-line flag.");
 				}
 			} else {  // Not a flag
 				if (!adapter.empty()) {
-					std::cerr << "Error: Command-line arguments contain more than network adapter name." << std::endl;
-					return EXIT_FAILURE;
+					throw std::invalid_argument("Command-line arguments contain more than network adapter name.");
 				}
 				adapter = arg;
 			}
 		}
+	} catch (const std::invalid_argument &e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		return EXIT_FAILURE;
+	}
+	
 	if (adapter == "") {
 		showHelp(argVec[0]);
 		return EXIT_FAILURE;
