@@ -251,8 +251,6 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 			if (RegQueryValueEx(hKey, "NetCfgInstanceId", nullptr, &discard1, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
 					&& std::string(value.data()) == std::string(id.data())) {
 				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, reinterpret_cast<const BYTE *>(newMac.c_str()), static_cast<DWORD>(newMac.size() + 1));
-				//std::cerr << "Updating adapter index " << keyNameBuf2 << " (" << buf << "=" << keyNameBuf << ")" << std::endl;
-				//break;
 			}
 		}
 	}
