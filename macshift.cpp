@@ -201,10 +201,15 @@ static std::string findAdapterId(const std::string &adapterName) {
 	
 	bool found = false;
 	for (DWORD i = 0; ; i++) {
-		DWORD idLen = static_cast<DWORD>(id.size());
-		FILETIME discard0;
-		if (RegEnumKeyEx(hListKey, i, id.data(), &idLen, 0, nullptr, nullptr, &discard0) != ERROR_SUCCESS)
-			break;
+		{
+			DWORD idLen = static_cast<DWORD>(id.size());
+			FILETIME discard0;
+			LSTATUS stat = RegEnumKeyEx(hListKey, i, id.data(), &idLen, 0, nullptr, nullptr, &discard0);
+			if (stat == ERROR_NO_MORE_ITEMS)
+				break;
+			if (stat != ERROR_SUCCESS)
+				throw std::runtime_error("Failed to enumerate registry keys");
+		}
 		
 		std::string subkey = id.data();
 		subkey += "\\Connection";
@@ -237,10 +242,15 @@ static void setMac(const std::string &adapterId, const std::string &newMac) {
 	
 	for (DWORD i = 0; ; i++) {
 		std::vector<char> name(512);
-		DWORD nameLen = static_cast<DWORD>(name.size());
-		FILETIME discard0;
-		if (RegEnumKeyEx(hListKey, i, name.data(), &nameLen, 0, nullptr, nullptr, &discard0) != ERROR_SUCCESS)
-			break;
+		{
+			DWORD nameLen = static_cast<DWORD>(name.size());
+			FILETIME discard0;
+			LSTATUS stat = RegEnumKeyEx(hListKey, i, name.data(), &nameLen, 0, nullptr, nullptr, &discard0);
+			if (stat == ERROR_NO_MORE_ITEMS)
+				break;
+			if (stat != ERROR_SUCCESS)
+				throw std::runtime_error("Failed to enumerate registry keys");
+		}
 		
 		HKEY hKey;
 		if (RegOpenKeyEx(hListKey, name.data(), 0, KEY_READ | KEY_SET_VALUE, &hKey) != ERROR_SUCCESS)
