@@ -102,7 +102,17 @@ int main(int argc, char **argv) {
 	}
 	
 	try {
-		std::cerr << "Setting MAC on adapter '" << adapter << "' to " << (newMac.size() > 0 ? newMac : std::string("original MAC")) << "..." << std::endl;
+		std::cerr << "New MAC address: ";
+		if (newMac.size() > 0) {
+			for (std::size_t i = 0; i < 12; i += 2) {
+				if (i > 0)
+					std::cerr << "-";
+				std::cerr << newMac.substr(i, 2);
+			}
+		} else
+			std::cerr << "(restore)";
+		std::cerr << std::endl;
+		
 		setMac(findAdapterId(adapter), newMac);
 		std::cerr << "Resetting adapter..." << std::endl;
 		resetAdapter(adapter);
