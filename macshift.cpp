@@ -23,10 +23,12 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <cwchar>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+
 #include <windows.h>
 #include <objbase.h>
 #include <netcon.h>
@@ -302,7 +304,7 @@ static void resetAdapter(const std::string &adapterName) {
 			continue;
 		auto conPropFinally = finally([conProp, NcFreeNetConProperties]{ NcFreeNetConProperties(conProp); });
 		
-		if (wcscmp(conProp->pszwName, buf.c_str()) == 0) {
+		if (std::wcscmp(conProp->pszwName, buf.c_str()) == 0) {
 			netCon->Disconnect();
 			netCon->Connect();
 			break;
