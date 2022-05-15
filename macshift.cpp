@@ -219,8 +219,7 @@ static std::string findAdapterId(const std::string &adapterName) {
 		
 		std::vector<char> value(512);
 		DWORD valueLen = static_cast<DWORD>(value.size());
-		DWORD discard1;
-		if (RegQueryValueEx(hKey, "Name", nullptr, &discard1, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
+		if (RegQueryValueEx(hKey, "Name", nullptr, nullptr, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
 				&& std::string(value.data()) == adapterName) {
 			std::cerr << "Adapter ID is " << id.data() << std::endl;
 			found = true;
@@ -257,8 +256,7 @@ static void setMac(const std::string &adapterId, const std::string &newMac) {
 		
 		std::vector<char> value(512);
 		DWORD valueLen = static_cast<DWORD>(value.size());
-		DWORD discard1;
-		if (RegQueryValueEx(hKey, "NetCfgInstanceId", nullptr, &discard1, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
+		if (RegQueryValueEx(hKey, "NetCfgInstanceId", nullptr, nullptr, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
 				&& std::string(value.data()) == adapterId) {
 			RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, reinterpret_cast<const BYTE *>(newMac.c_str()), static_cast<DWORD>(newMac.size() + 1));
 		}
