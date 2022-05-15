@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 			const std::string &arg = argVec.at(i);
 			if (arg.find("-") == 0) {  // A flag
 				if (arg == "-h") {
-					showHelp(argVec[0]);
+					showHelp(argVec.at(0));
 					return EXIT_FAILURE;
 				} else if (arg == "-d" || arg == "-r" || arg == "-a") {
 					if (isMacModeSet)
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 	}
 	
 	if (adapter == "") {
-		showHelp(argVec[0]);
+		showHelp(argVec.at(0));
 		return EXIT_FAILURE;
 	}
 	
@@ -144,7 +144,7 @@ static bool isValidMac(const std::string &str) {
 	if (str.size() != 12)
 		return false;
 	for (int i = 0; i < 12; i++) {
-		char c = str[i];
+		char c = str.at(i);
 		bool ok = ('0' <= c && c <= '9')
 		       || ('a' <= c && c <= 'f')
 		       || ('A' <= c && c <= 'F');
@@ -272,7 +272,7 @@ static void resetAdapter(const std::string &adapterName) {
 	
 	std::wstring buf;
 	for (std::size_t i = 0; i < adapterName.size(); i++)
-		buf.push_back(static_cast<wchar_t>(adapterName[i]));
+		buf.push_back(static_cast<wchar_t>(adapterName.at(i)));
 	
 	(void)CoInitialize(nullptr);
 	auto comFinally = finally([]{ CoUninitialize(); });
