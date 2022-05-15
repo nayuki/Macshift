@@ -54,48 +54,48 @@ int main(int argc, char **argv) {
 	std::string newMac = randomizeMac();
 	
 	// Parse command-line arguments
-	for (size_t i = 1; i < argVec.size(); i++) {
-		const std::string &arg = argVec.at(i);
-		if (arg.find("-") == 0) {  // A flag
-			if (arg == "-h") {
-				showHelp(argVec[0]);
-				return EXIT_FAILURE;
-			} else if (arg == "-d" || arg == "-r" || arg == "-a") {
-				if (isMacModeSet) {
-					std::cerr << "Error: Command-line arguments contain more than one MAC address mode." << std::endl;
+		for (size_t i = 1; i < argVec.size(); i++) {
+			const std::string &arg = argVec.at(i);
+			if (arg.find("-") == 0) {  // A flag
+				if (arg == "-h") {
+					showHelp(argVec[0]);
+					return EXIT_FAILURE;
+				} else if (arg == "-d" || arg == "-r" || arg == "-a") {
+					if (isMacModeSet) {
+						std::cerr << "Error: Command-line arguments contain more than one MAC address mode." << std::endl;
+						return EXIT_FAILURE;
+					}
+					isMacModeSet = true;
+					if (arg == "-d")
+						newMac = "";
+					else if (arg == "-r")
+						;  // Do nothing else because newMac is already random
+					else if (arg == "-a") {
+						if (argVec.size() - i <= 1) {
+							std::cerr << "Error: Missing MAC address argument." << std::endl;
+							return EXIT_FAILURE;
+						}
+						i++;
+						const std::string &val = argVec.at(i);
+						if (!isValidMac(val)) {
+							std::cerr << "Error: Invalid MAC address, must match pattern /[0-9a-fA-F]{12}/." << std::endl;
+							return EXIT_FAILURE;
+						}
+						newMac = val;
+					} else
+						throw std::logic_error("Unreachable");
+				} else {
+					std::cerr << "Error: Unrecognized command-line flag." << std::endl;
 					return EXIT_FAILURE;
 				}
-				isMacModeSet = true;
-				if (arg == "-d")
-					newMac = "";
-				else if (arg == "-r")
-					;  // Do nothing else because newMac is already random
-				else if (arg == "-a") {
-					if (argVec.size() - i <= 1) {
-						std::cerr << "Error: Missing MAC address argument." << std::endl;
-						return EXIT_FAILURE;
-					}
-					i++;
-					const std::string &val = argVec.at(i);
-					if (!isValidMac(val)) {
-						std::cerr << "Error: Invalid MAC address, must match pattern /[0-9a-fA-F]{12}/." << std::endl;
-						return EXIT_FAILURE;
-					}
-					newMac = val;
-				} else
-					throw std::logic_error("Unreachable");
-			} else {
-				std::cerr << "Error: Unrecognized command-line flag." << std::endl;
-				return EXIT_FAILURE;
+			} else {  // Not a flag
+				if (!adapter.empty()) {
+					std::cerr << "Error: Command-line arguments contain more than network adapter name." << std::endl;
+					return EXIT_FAILURE;
+				}
+				adapter = arg;
 			}
-		} else {  // Not a flag
-			if (!adapter.empty()) {
-				std::cerr << "Error: Command-line arguments contain more than network adapter name." << std::endl;
-				return EXIT_FAILURE;
-			}
-			adapter = arg;
 		}
-	}
 	if (adapter == "") {
 		showHelp(argVec[0]);
 		return EXIT_FAILURE;
