@@ -113,10 +113,10 @@ int main(int argc, char **argv) {
 			std::cerr << "(restore)";
 		std::cerr << std::endl;
 		
-		setMac(findAdapterId(adapter), newMac);
-		std::cerr << "Resetting adapter..." << std::endl;
+		std::string adapterId = findAdapterId(adapter);
+		std::cerr << "Network adapter ID: " << adapterId << std::endl;
+		setMac(adapterId, newMac);
 		resetAdapter(adapter);
-		std::cerr << "Done" << std::endl;
 		return EXIT_SUCCESS;
 	}
 	catch (const std::runtime_error &e) {
@@ -232,7 +232,6 @@ static std::string findAdapterId(const std::string &adapterName) {
 		DWORD valueLen = static_cast<DWORD>(value.size());
 		if (RegQueryValueEx(hKey, "Name", nullptr, nullptr, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
 				&& std::string(value.data()) == adapterName) {
-			std::cerr << "Adapter ID is " << nameStr << std::endl;
 			return nameStr;
 		}
 	}
@@ -268,6 +267,7 @@ static void setMac(const std::string &adapterId, const std::string &newMac) {
 				&& std::string(value.data()) == adapterId) {
 			if (RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, reinterpret_cast<const BYTE *>(newMac.c_str()), static_cast<DWORD>(newMac.size() + 1)) != ERROR_SUCCESS)
 				throw std::runtime_error("Failed to set registry key");
+			std::cerr << "Wrote registry key" << std::endl;
 			return;  // Success
 		}
 	}
@@ -321,6 +321,7 @@ static void resetAdapter(const std::string &adapterName) {
 		auto conPropFinally = finally([conProp, NcFreeNetConProperties]{ NcFreeNetConProperties(conProp); });
 		
 		if (std::wcscmp(conProp->pszwName, buf.c_str()) == 0) {
+			std::cerr << "Resetting adapter" << std::endl;
 			netCon->Disconnect();
 			netCon->Connect();
 			break;
