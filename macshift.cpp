@@ -155,20 +155,20 @@ static bool isValidMac(const std::string &str) {
 }
 
 
-extern std::vector<unsigned long> validMacs;
+extern std::vector<long> validMacs;
 
 // Generates a random MAC that is actually plausible.
 static std::string randomizeMac() {
-	long long temp = static_cast<long long>(validMacs[rand() % validMacs.size()]);
+	long long temp = validMacs.at(rand() % validMacs.size());
 	for (int i = 0; i < 3; i++) {
 		temp <<= 8;
 		temp |= rand() & 0xFF;
 	}
 	
-	static const char *HEX_DIGITS = "0123456789ABCDEF";
+	static const std::string HEX_DIGITS = "0123456789ABCDEF";
 	std::string result;
 	for (int i = 11; i >= 0; i--) {
-		result.insert(result.begin(), HEX_DIGITS[temp & 0xF]);
+		result.insert(result.begin(), HEX_DIGITS.at(temp & 0xF));
 		temp >>= 4;
 	}
 	return result;
