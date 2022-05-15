@@ -314,10 +314,12 @@ static void resetAdapter(const std::string &adapterName) {
 	
 	while (true) {
 		INetConnection *netCon;
-		ULONG fetched;
-		enumCon->Next(1, &netCon, &fetched);
-		if (fetched == 0)
-			break;
+		{
+			ULONG fetched;
+			enumCon->Next(1, &netCon, &fetched);
+			if (fetched == 0)
+				break;
+		}
 		if (netCon == nullptr)
 			continue;
 		
