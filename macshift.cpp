@@ -203,8 +203,7 @@ static std::string findAdapterId(const std::string &adapterName) {
 	for (DWORD i = 0; ; i++) {
 		{
 			DWORD idLen = static_cast<DWORD>(id.size());
-			FILETIME discard0;
-			LSTATUS stat = RegEnumKeyEx(hListKey, i, id.data(), &idLen, 0, nullptr, nullptr, &discard0);
+			LSTATUS stat = RegEnumKeyEx(hListKey, i, id.data(), &idLen, 0, nullptr, nullptr, nullptr);
 			if (stat == ERROR_NO_MORE_ITEMS)
 				break;
 			if (stat != ERROR_SUCCESS)
@@ -244,8 +243,7 @@ static void setMac(const std::string &adapterId, const std::string &newMac) {
 		std::vector<char> name(512);
 		{
 			DWORD nameLen = static_cast<DWORD>(name.size());
-			FILETIME discard0;
-			LSTATUS stat = RegEnumKeyEx(hListKey, i, name.data(), &nameLen, 0, nullptr, nullptr, &discard0);
+			LSTATUS stat = RegEnumKeyEx(hListKey, i, name.data(), &nameLen, 0, nullptr, nullptr, nullptr);
 			if (stat == ERROR_NO_MORE_ITEMS)
 				break;
 			if (stat != ERROR_SUCCESS)
