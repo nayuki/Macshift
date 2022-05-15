@@ -193,25 +193,25 @@ static Finally<F> finally(F f) {
 
 
 static std::string findAdapterId(const std::string &adapterName) {
-	std::vector<char> id(512);
 	HKEY hListKey;
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS)
 		throw std::runtime_error("Failed to open adapter list key");
 	auto hListKeyFinally = finally([hListKey]{ RegCloseKey(hListKey); });
 	
-	bool found = false;
 	for (DWORD i = 0; ; i++) {
+		std::string nameStr;
 		{
-			DWORD idLen = static_cast<DWORD>(id.size());
-			LSTATUS stat = RegEnumKeyEx(hListKey, i, id.data(), &idLen, 0, nullptr, nullptr, nullptr);
+			std::vector<char> name(512);
+			DWORD nameLen = static_cast<DWORD>(name.size());
+			LSTATUS stat = RegEnumKeyEx(hListKey, i, name.data(), &nameLen, 0, nullptr, nullptr, nullptr);
 			if (stat == ERROR_NO_MORE_ITEMS)
 				break;
 			if (stat != ERROR_SUCCESS)
 				throw std::runtime_error("Failed to enumerate registry keys");
+			nameStr = name.data();
 		}
 		
-		std::string subkey = id.data();
-		subkey += "\\Connection";
+		std::string subkey = nameStr + "\\Connection";
 		HKEY hKey;
 		if (RegOpenKeyEx(hListKey, subkey.c_str(), 0, KEY_READ, &hKey) != ERROR_SUCCESS)
 			continue;
@@ -221,14 +221,11 @@ static std::string findAdapterId(const std::string &adapterName) {
 		DWORD valueLen = static_cast<DWORD>(value.size());
 		if (RegQueryValueEx(hKey, "Name", nullptr, nullptr, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
 				&& std::string(value.data()) == adapterName) {
-			std::cerr << "Adapter ID is " << id.data() << std::endl;
-			found = true;
-			break;
+			std::cerr << "Adapter ID is " << nameStr << std::endl;
+			return nameStr;
 		}
 	}
-	if (!found)
-		throw std::runtime_error("Failed to find an adapter with the given name; please recheck your Network Connections");
-	return std::string(id.data());
+	throw std::runtime_error("Failed to find an adapter with the given name; please recheck your Network Connections");
 }
 
 
