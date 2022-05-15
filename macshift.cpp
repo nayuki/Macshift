@@ -301,13 +301,13 @@ static void resetAdapter(const std::string &adapterName) {
 		if (netCon == nullptr)
 			continue;
 		
-		NETCON_PROPERTIES *pNCP;
-		netCon->GetProperties(&pNCP);
-		if (pNCP == nullptr)
+		NETCON_PROPERTIES *conProp;
+		netCon->GetProperties(&conProp);
+		if (conProp == nullptr)
 			continue;
-		auto pNCPFinally = finally([pNCP, NcFreeNetConProperties]{ NcFreeNetConProperties(pNCP); });
+		auto conPropFinally = finally([conProp, NcFreeNetConProperties]{ NcFreeNetConProperties(conProp); });
 		
-		if (wcscmp(pNCP->pszwName, buf.c_str()) == 0) {
+		if (wcscmp(conProp->pszwName, buf.c_str()) == 0) {
 			netCon->Disconnect();
 			netCon->Connect();
 		}
