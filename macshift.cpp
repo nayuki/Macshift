@@ -221,11 +221,8 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 				break;
 			}
 		}
-		if (!found) {
-			std::cerr << "Could not find adapter name '" << adapterName << "'." << std::endl;
-			std::cerr << "Please make sure this is the name you gave it in Network Connections." << std::endl;
-			return;
-		}
+		if (!found)
+			throw std::runtime_error("Failed to find an adapter with the given name; please recheck your Network Connections");
 	}
 	
 	{
@@ -263,14 +260,14 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 static void resetAdapter(const std::string &adapterName) {
 	HMODULE netshellLib = LoadLibrary("Netshell.dll");
 	if (netshellLib == nullptr)
-		throw std::runtime_error("Couldn't load Netshell.dll");
+		throw std::runtime_error("Failed to load Netshell.dll");
 	auto netshellLibFinally = finally([netshellLib]{ FreeLibrary(netshellLib); });
 	
 	void (__stdcall *NcFreeNetConProperties)(NETCON_PROPERTIES *) =
 		(void (__stdcall *)(struct tagNETCON_PROPERTIES *))
 		GetProcAddress(netshellLib, "NcFreeNetconProperties");
 	if (NcFreeNetConProperties == nullptr)
-		throw std::runtime_error("Couldn't load required DLL function");
+		throw std::runtime_error("Failed to load function from DLL");
 	
 	std::wstring buf;
 	for (std::size_t i = 0; i < adapterName.size(); i++)
@@ -283,7 +280,7 @@ static void resetAdapter(const std::string &adapterName) {
 	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, {0xB1,0xD0,0x00,0x80,0x5F,0xC1,0x27,0x0E}};
 	HRESULT hr = ::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&conMgr);
 	if (conMgr == nullptr)
-		throw std::runtime_error("Failed to instantiate required object");
+		throw std::runtime_error("Failed to create connection manager");
 	auto conMgrFinally = finally([conMgr]{ conMgr->Release(); });
 	
 	IEnumNetConnection *enumCon;
