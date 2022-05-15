@@ -263,9 +263,8 @@ static void resetAdapter(const std::string &adapterName) {
 		throw std::runtime_error("Failed to load Netshell.dll");
 	auto netshellLibFinally = finally([netshellLib]{ FreeLibrary(netshellLib); });
 	
-	void (__stdcall *NcFreeNetConProperties)(NETCON_PROPERTIES *) =
-		(void (__stdcall *)(struct tagNETCON_PROPERTIES *))
-		GetProcAddress(netshellLib, "NcFreeNetconProperties");
+	auto NcFreeNetConProperties = reinterpret_cast<void (__stdcall *)(struct tagNETCON_PROPERTIES *)>(
+		GetProcAddress(netshellLib, "NcFreeNetconProperties"));
 	if (NcFreeNetConProperties == nullptr)
 		throw std::runtime_error("Failed to load function from DLL");
 	
@@ -276,10 +275,9 @@ static void resetAdapter(const std::string &adapterName) {
 	(void)CoInitialize(nullptr);
 	auto comFinally = finally([]{ CoUninitialize(); });
 	
-	INetConnectionManager *conMgr = nullptr;
+	INetConnectionManager *conMgr;
 	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, {0xB1,0xD0,0x00,0x80,0x5F,0xC1,0x27,0x0E}};
-	HRESULT hr = ::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&conMgr);
-	if (conMgr == nullptr)
+	if (::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&conMgr) != S_OK)
 		throw std::runtime_error("Failed to create connection manager");
 	auto conMgrFinally = finally([conMgr]{ conMgr->Release(); });
 	
@@ -307,6 +305,7 @@ static void resetAdapter(const std::string &adapterName) {
 		if (wcscmp(conProp->pszwName, buf.c_str()) == 0) {
 			netCon->Disconnect();
 			netCon->Connect();
+			break;
 		}
 	}
 }
