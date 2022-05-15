@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
 	}
 	
 	std::cerr << "Setting MAC on adapter '" << adapter << "' to " << (newMac.size() > 0 ? newMac : std::string("original MAC")) << "..." << std::endl;
-	setMac(adapter, newMac.c_str());
+	setMac(adapter, newMac);
 	std::cerr << "Resetting adapter..." << std::endl;
 	resetAdapter(adapter);
 	std::cerr << "Done" << std::endl;
@@ -254,7 +254,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 			DWORD discard1;
 			if (RegQueryValueEx(hKey, "NetCfgInstanceId", nullptr, &discard1, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
 					&& std::string(value.data()) == std::string(id.data())) {
-				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, (LPBYTE)newMac.c_str(), static_cast<DWORD>(newMac.size() + 1));
+				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, reinterpret_cast<const BYTE *>(newMac.c_str()), static_cast<DWORD>(newMac.size() + 1));
 				//std::cerr << "Updating adapter index " << keyNameBuf2 << " (" << buf << "=" << keyNameBuf << ")" << std::endl;
 				//break;
 			}
@@ -264,8 +264,6 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 
 
 static void resetAdapter(const std::string &adapterName) {
-	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, {0xB1,0xD0,0x00,0x80,0x5F,0xC1,0x27,0x0E}};
-	
 	HMODULE netshellLib = LoadLibrary("Netshell.dll");
 	if (netshellLib == nullptr) {
 		puts("Couldn't load Netshell.dll");
@@ -289,6 +287,7 @@ static void resetAdapter(const std::string &adapterName) {
 	auto comFinally = finally([]{ CoUninitialize(); });
 	
 	INetConnectionManager *pNCM = nullptr;
+	struct _GUID guid = {0xBA126AD1, 0x2166, 0x11D1, {0xB1,0xD0,0x00,0x80,0x5F,0xC1,0x27,0x0E}};
 	HRESULT hr = ::CoCreateInstance(guid, nullptr, CLSCTX_ALL, __uuidof(INetConnectionManager), (void**)&pNCM);
 	if (pNCM == nullptr) {
 		puts("Failed to instantiate required object");
