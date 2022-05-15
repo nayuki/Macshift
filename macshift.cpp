@@ -38,7 +38,8 @@
 static void showHelp(const std::string &exePath);
 static bool isValidMac(const std::string &str);
 static std::string randomMac();
-static void setMac(const std::string &AdapterName, const std::string &newMac);
+static std::string findAdapterId(const std::string &adapterName);
+static void setMac(const std::string &adapterId, const std::string &newMac);
 static void resetAdapter(const std::string &AdapterName);
 
 
@@ -101,7 +102,7 @@ int main(int argc, char **argv) {
 	
 	try {
 		std::cerr << "Setting MAC on adapter '" << adapter << "' to " << (newMac.size() > 0 ? newMac : std::string("original MAC")) << "..." << std::endl;
-		setMac(adapter, newMac);
+		setMac(findAdapterId(adapter), newMac);
 		std::cerr << "Resetting adapter..." << std::endl;
 		resetAdapter(adapter);
 		std::cerr << "Done" << std::endl;
@@ -191,7 +192,7 @@ static Finally<F> finally(F f) {
 }
 
 
-static void setMac(const std::string &adapterName, const std::string &newMac) {
+static std::string findAdapterId(const std::string &adapterName) {
 	std::vector<char> id(512);
 	{
 		HKEY hListKey;
@@ -226,7 +227,11 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 		if (!found)
 			throw std::runtime_error("Failed to find an adapter with the given name; please recheck your Network Connections");
 	}
-	
+	return std::string(id.data());
+}
+
+
+static void setMac(const std::string &adapterId, const std::string &newMac) {
 	{
 		HKEY hListKey;
 		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}", 0, KEY_READ, &hListKey) != ERROR_SUCCESS)
@@ -249,7 +254,7 @@ static void setMac(const std::string &adapterName, const std::string &newMac) {
 			DWORD valueLen = static_cast<DWORD>(value.size());
 			DWORD discard1;
 			if (RegQueryValueEx(hKey, "NetCfgInstanceId", nullptr, &discard1, reinterpret_cast<LPBYTE>(value.data()), &valueLen) == ERROR_SUCCESS
-					&& std::string(value.data()) == std::string(id.data())) {
+					&& std::string(value.data()) == adapterId) {
 				RegSetValueEx(hKey, "NetworkAddress", 0, REG_SZ, reinterpret_cast<const BYTE *>(newMac.c_str()), static_cast<DWORD>(newMac.size() + 1));
 			}
 		}
