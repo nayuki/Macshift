@@ -4,7 +4,7 @@
  * Copyright (c) 2004 Nathan True <macshift@natetrue.com>
  * http://www.natetrue.com/
  * Copyright (c) Project Nayuki
- * https://www.nayuki.io/
+ * https://www.nayuki.io/page/macshift-nayukis-version
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -127,7 +127,7 @@ static void submain(const std::vector<std::string> &argVec) {
 
 
 static void showHelp(const std::string &exePath) {
-	std::cerr << "https://www.nayuki.io/" << std::endl;
+	std::cerr << "https://www.nayuki.io/page/macshift-nayukis-version" << std::endl;
 	std::cerr << std::endl;
 	std::cerr << "Usage: " << exePath << " AdapterName [Options]" << std::endl;
 	std::cerr << std::endl;
