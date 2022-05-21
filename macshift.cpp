@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
 
 static void submain(const std::vector<std::string> &argVec) {
-	std::string adapter = "";
+	std::string adapterName = "";
 	bool isMacModeSet = false;
 	std::string newMac = randomMac();
 	
@@ -98,13 +98,13 @@ static void submain(const std::vector<std::string> &argVec) {
 			} else
 				throw std::invalid_argument("Unrecognized command-line flag");
 		} else {  // Not a flag
-			if (!adapter.empty())
+			if (!adapterName.empty())
 				throw std::invalid_argument("Command-line arguments contain more than one network adapter name");
-			adapter = arg;
+			adapterName = arg;
 		}
 	}
 	
-	if (adapter == "")
+	if (adapterName == "")
 		showHelp(argVec.at(0));
 	
 	std::cerr << "New MAC address: ";
@@ -119,10 +119,10 @@ static void submain(const std::vector<std::string> &argVec) {
 	}
 	std::cerr << std::endl;
 	
-	std::string adapterId = findAdapterId(adapter);
+	std::string adapterId = findAdapterId(adapterName);
 	std::cerr << "Network adapter ID: " << adapterId << std::endl;
 	setMac(adapterId, newMac);
-	resetAdapter(adapter);
+	resetAdapter(adapterName);
 }
 
 
