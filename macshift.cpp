@@ -72,7 +72,7 @@ static void submain(const std::vector<std::string> &argVec) {
 	std::string newMac = randomMac();
 	
 	// Parse command-line arguments
-	for (size_t i = 1; i < argVec.size(); i++) {
+	for (std::size_t i = 1; i < argVec.size(); i++) {
 		const std::string &arg = argVec.at(i);
 		if (arg.find("-") == 0) {  // A flag
 			if (arg == "-h")
