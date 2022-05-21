@@ -171,14 +171,13 @@ static bool isValidMac(const std::string &str) {
 }
 
 
-extern std::vector<long> validMacs;
-
-// Generates a random MAC that is actually plausible.
 static std::string randomMac() {
-	long long temp = validMacs.at(rand() % validMacs.size());
-	for (int i = 0; i < 3; i++) {
-		temp <<= 8;
-		temp |= rand() & 0xFF;
+	long long temp = 0;
+	for (int i = 0; i < 6; i++) {
+		int b = rand() & 0xFF;
+		if (i == 0)
+			b = (b & 0xFC) | 0x02;  // Set local and unicast bits
+		temp = (temp << 8) | b;
 	}
 	
 	static const std::string HEX_DIGITS = "0123456789ABCDEF";
