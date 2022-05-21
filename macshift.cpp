@@ -333,7 +333,8 @@ static void resetAdapter(const std::string &adapterName) {
 			std::cerr << "Resetting adapter" << std::endl;
 			netCon->Disconnect();
 			netCon->Connect();
-			break;
+			return;  // Success
 		}
 	}
+	throw std::runtime_error("Failed to find adapter by name");
 }
